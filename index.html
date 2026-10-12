@@ -34,7 +34,7 @@ header .t{flex:1;min-width:0}header .t b{display:block;font-size:15px;white-spac
 .rchip{background:var(--accent);color:#fff;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:700;font-family:var(--mono);white-space:nowrap}
 .hbtn{background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:12px}
 nav{display:flex;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:52px;z-index:19;overflow-x:auto}
-nav button{flex:1;min-width:84px;padding:11px 8px;border:none;background:none;font-weight:600;font-size:13px;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+nav button{flex:1 0 auto;padding:11px 12px;border:none;background:none;font-weight:600;font-size:13px;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
 nav button.on{color:var(--brand);border-bottom-color:var(--brand)}
 nav .badge{background:var(--fail);color:#fff;border-radius:99px;font-size:11px;padding:1px 6px;margin-left:3px}
 main{max-width:860px;margin:0 auto;padding:12px 12px 80px}
@@ -88,6 +88,36 @@ h3.sec{font-size:14px;margin:14px 0 6px;color:var(--brand-d)}
 .sw label{flex:1;border:1.5px solid var(--line);border-radius:10px;padding:8px;text-align:center;font-weight:600;font-size:13px}
 .sw input{display:none}.sw label.on{border-color:var(--brand);background:var(--brand-t);color:var(--brand)}
 .prev img{max-width:100%;max-height:200px;border-radius:10px;margin-top:6px}
+
+#mapBox{position:relative;width:100%;height:0;padding-top:27.83%;overflow:hidden;background:#e8eef5}
+#mapImg{position:absolute;top:-74.65%;left:0;width:100%;height:auto;display:block}
+#mapScroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:#e8eef5}
+.pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;z-index:2}
+.pin .dot{width:16px;height:16px;border-radius:50% 50% 50% 0;transform:rotate(45deg);border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,.4)}
+.pin .cnt{position:absolute;left:50%;top:-10px;transform:translateX(-50%);font-size:9px;font-weight:700;background:#14202E;color:#fff;border-radius:99px;padding:0 4px;line-height:13px}
+.pin.o .dot{background:var(--fail)}.pin.r .dot{background:#2563EB}.pin.v .dot{background:var(--pass)}
+.cvwrap{text-align:center}
+#pinCanvas{border:1px solid var(--line);border-radius:10px;touch-action:manipulation;max-width:100%}
+.lg{display:inline-flex;gap:4px;align-items:center;font-size:12px;color:var(--muted);margin-right:10px}.lg i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.gprog{font-family:var(--mono);font-size:11px;opacity:.85;margin-left:4px}
+
+.grp-sub{font-size:13px;color:var(--muted);margin-bottom:8px}
+.grp-pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;margin-bottom:10px}
+.gbtn{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:8px 6px;text-align:center;line-height:1.2}
+.gbtn b{display:block;font-size:17px;font-family:var(--mono);color:var(--brand)}
+.gbtn span{display:block;font-size:11px;color:var(--muted);margin:1px 0}
+.gbtn em{font-style:normal;font-size:11px;font-family:var(--mono);color:var(--faint)}
+.gbtn.on{border-color:var(--brand);background:var(--brand-t)}
+.gbtn.on b{color:var(--brand-d)}
+.gbtn.ok em{color:var(--pass)}
+.item{background:#fff;border:1px solid var(--line);border-left:4px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:9px}
+.item.todo{border-left-color:var(--faint)}
+.item.has{border-left-color:var(--fail)}
+.item.done{border-left-color:var(--pass)}
+.item.na{border-left-color:#8B5CF6}
+.item .ih{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+.item .muc{font-weight:600;font-size:15px}
+.item .nd2{font-size:13px;color:var(--muted);margin:2px 0 4px}
 </style>
 </head>
 <body>
@@ -127,6 +157,15 @@ const PARTS=["PRO","QC","MM","EQM","HR","INNO"];
 const LINE_OPTS={"Line sản xuất":Array.from({length:17},(_,i)=>["Line "+(i+1)+"A","Line "+(i+1)+"B"]).flat(),
  "Khu vực OQC":Array.from({length:17},(_,i)=>"Khu vực OQC Line "+(i+1)),
  "Kho & khu vực khác":["Khu vực kho shipment","Khu vực kho vật liệu","Khu vực IQC","Khu vực rework","Khu vực WIP","Khu vực kho jig","Khu vực văn phòng chính","Khu vực văn phòng kho","Khu vực kho rác","Khu vực kho thiết bị","Khu vực cửa từ","Khu vực locker","Phòng họp hiện trường","Khu vực sảnh VIP","Hội trường Kinh Bắc","Khu vực 200%","Khu vực PM thiết bị","WC trên","WC dưới"]};
+const ZONES_CFG={"lineBlock": {"x": 19.71, "y": 37.09, "w": 41.65, "h": 26.95, "count": 17}, "peripheral": {"Khu vực kho shipment": [{"x": 69.1, "y": 58.06, "w": 5.88, "h": 6.59}, {"x": 74.84, "y": 59.69, "w": 13.62, "h": 5.17}], "Khu vực kho vật liệu": [{"x": 69.18, "y": 36.99, "w": 9.53, "h": 15.4}, {"x": 75.2, "y": 52.29, "w": 14.27, "h": 7.4}, {"x": 83.08, "y": 46.41, "w": 6.67, "h": 6.38}], "Khu vực IQC": [{"x": 78.85, "y": 43.78, "w": 4.16, "h": 8.71}], "Khu vực rework": [{"x": 44.95, "y": 32.93, "w": 18.28, "h": 3.34}], "Khu vực WIP": [{"x": 63.3, "y": 33.03, "w": 9.89, "h": 3.34}], "Khu vực kho jig": [{"x": 9.82, "y": 55.83, "w": 5.88, "h": 9.12}], "Khu vực văn phòng chính": [{"x": 6.09, "y": 45.3, "w": 9.53, "h": 10.64}, {"x": 15.7, "y": 44.99, "w": 3.94, "h": 19.76}], "Khu vực văn phòng kho": [{"x": 69.03, "y": 52.29, "w": 6.09, "h": 5.57}], "Khu vực kho rác": [{"x": 79.21, "y": 37.9, "w": 3.94, "h": 5.78}, {"x": 83.08, "y": 38.71, "w": 6.74, "h": 7.4}], "Khu vực kho thiết bị": [{"x": 92.11, "y": 44.59, "w": 3.66, "h": 20.57}], "Khu vực cửa từ": [{"x": 10.04, "y": 32.12, "w": 9.25, "h": 12.36}], "Khu vực locker": [{"x": 19.21, "y": 32.22, "w": 18.35, "h": 4.15}], "Phòng họp hiện trường": [{"x": 37.49, "y": 32.43, "w": 7.46, "h": 4.05}], "Khu vực sảnh VIP": [{"x": 1.15, "y": 33.03, "w": 4.73, "h": 19.35}], "Hội trường Kinh Bắc": [{"x": 1.29, "y": 52.49, "w": 8.32, "h": 12.97}], "Khu vực 200%": [{"x": 61.36, "y": 52.79, "w": 7.74, "h": 11.96}], "Khu vực PM thiết bị": [{"x": 61.43, "y": 37.09, "w": 7.74, "h": 15.71}], "WC trên": [{"x": 5.59, "y": 32.73, "w": 4.37, "h": 12.26}], "WC dưới": [{"x": 73.69, "y": 32.12, "w": 9.53, "h": 5.78}]}};
+const BAND_Y0=29.38, BAND_Y1=68.74;
+const LAYOUT_SRC="layout.png", LAYOUT_FB="https://mrhothang-ai.github.io/Audit_hien_truong_ILS/layout.png";
+function unionBox(a){const x0=Math.min(...a.map(b=>b.x)),y0=Math.min(...a.map(b=>b.y));return{x:x0,y:y0,w:Math.max(...a.map(b=>b.x+b.w))-x0,h:Math.max(...a.map(b=>b.y+b.h))-y0};}
+function resolveZone(line){if(!line)return null;const lb=ZONES_CFG.lineBlock,m=line.match(/Line\s*(\d+)/i);if(m&&lb){const n=+m[1];if(n>=1&&n<=lb.count){const cw=lb.w/lb.count;return{x:lb.x+(n-1)*cw,y:lb.y,w:cw,h:lb.h};}}const arr=ZONES_CFG.peripheral[line];return arr&&arr.length?unionBox(arr):null;}
+function zoneCenter(line){const z=resolveZone(line);return z?{x:Math.round((z.x+z.w/2)*100)/100,y:Math.round((z.y+z.h/2)*100)/100}:null;}
+function expandCrop(z){const px=Math.max(z.w*0.25,2.5),py=Math.max(z.h*0.1,2.5),x=Math.max(0,z.x-px),y=Math.max(0,z.y-py);return{x:x,y:y,w:Math.min(100-x,z.w+2*px),h:Math.min(100-y,z.h+2*py)};}
+const LImg=new Image();LImg.onerror=()=>{if(!LImg._f){LImg._f=1;LImg.src=LAYOUT_FB;}};LImg.onload=()=>{if(typeof PS!=="undefined"&&PS)drawPin();};LImg.src=LAYOUT_SRC;
+const yPct=y=>((y-BAND_Y0)/(BAND_Y1-BAND_Y0)*100);
 const SUBJ=[];
 ITEMS.forEach(i=>SUBJ.push({sid:i.sid,kind:"M",label:"#"+i.no,g:i.g,title:i.muc,desc:i.nd,bp:i.bp,tab:"M"}));
 FAILS.forEach(f=>SUBJ.push({sid:f.sid,kind:"F",label:"L"+f.id,g:f.g,title:f.vt+" — "+f.muc+" (mã "+f.ma+")",desc:f.nd,bp:f.bp,tab:"F",typ:f.type}));
@@ -136,18 +175,71 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const GUEST=new URLSearchParams(location.search).get("mode")==="report";
 let sb=null, SES=null, S={me:null,round:1,req_photo:true,ehs:[],na:[],locs:[],events:[]};
-let TAB=GUEST?"report":"M", FILT={q:"",f:"all",g:""}, SCOPE="all", PH={};
+let TAB=GUEST?"map":"M", FILT={q:"",f:"all",g:"A"}, SCOPE="all", PH={}, MF={g:"",part:"",st:""}, MAPZ=1, CURPIN=null, PS=null;
 
 function toast(m,e){const t=$("toast");t.innerHTML='<div class="toast'+(e?" e":"")+'">'+esc(m)+'</div>';clearTimeout(toast._t);toast._t=setTimeout(()=>t.innerHTML="",e?4500:2200);}
 async function rpc(fn,args){const r=await sb.rpc(fn,args||{});if(r.error)throw new Error(r.error.message||String(r.error));return r.data;}
 async function call(fn,args,okMsg){try{const r=await rpc(fn,Object.assign({p_token:SES&&SES.token},args));await reload();if(okMsg)toast(okMsg);return r===undefined?true:(r===null?true:r);}catch(e){toast(e.message,true);return false;}}
 
+
+/* ---------- CHẾ ĐỘ DEMO (?mode=demo): dữ liệu mẫu trong trình duyệt, không ghi vào hệ thống thật ---------- */
+const DEMO=new URLSearchParams(location.search).get("mode")==="demo";
+function demoClient(){
+  const iso=(d)=>new Date(Date.now()-d*864e5).toISOString();
+  const db={round:1,req_photo:true,ehs:["Demo EHS"],na:["M60"],locs:[],events:[]};let n=0;
+  const users={"Demo EHS":{role:"user",part:"HR"},"Demo PRO":{role:"user",part:"PRO"},"Demo QC":{role:"user",part:"QC"},"Demo Kho":{role:"user",part:"MM"}};
+  const mk=(sid,zone,detail,part,status,extra)=>{const l=Object.assign({id:"D"+(++n),sid,zone,detail,owner_part:part,status,active:true,created_by:"Demo EHS",created_part:"HR",created_round:1,created_at:iso(1)},extra||{});db.locs.push(l);db.events.push({id:++n,loc_id:l.id,sid,action:"create",round:1,at:l.created_at});if(status==="verified")db.events.push({id:++n,loc_id:l.id,sid,action:"verify",round:1,at:iso(0)});return l;};
+  const P=(zone,k)=>{const c=zoneCenter(zone)||{x:50,y:50};const a=(k||0)*1.2;return{pin_id:"P_"+zone+"_"+(k||0),x:Math.round((c.x+a)*100)/100,y:Math.round((c.y+a*0.6)*100)/100};};
+  const V={verified_by:"Demo EHS",verified_at:iso(0)};
+  mk("M01","Line 3A","Bình chữa cháy bị che bởi pallet","PRO","verified",Object.assign({},V,P("Line 3A",0)));
+  mk("M06","Line 3A","Lối thoát bị chặn bởi khay hàng","PRO","open",P("Line 3A",0));
+  mk("M01","Line 5B","Thiếu bình chữa cháy","PRO","open",P("Line 5B",0));
+  mk("M01","Khu vực kho jig","Bình để dưới sàn","EQM","open",P("Khu vực kho jig",0));
+  mk("M02","Line 1A","Đồng hồ áp suất không có vạch","HR","open",P("Line 1A",0));
+  mk("M06","Line 8B","Lối thoát bị chặn bởi khay hàng","PRO","open",P("Line 8B",0));
+  mk("M70","Khu vực kho vật liệu","Hàng để trên nóc rack","MM","open",P("Khu vực kho vật liệu",0));
+  mk("F07","Khu vực kho vật liệu","Hàng hóa để trên nóc rack","MM","open",P("Khu vực kho vật liệu",0));
+  mk("M70","Khu vực WIP","Không có layout","QC","verified",Object.assign({},V,P("Khu vực WIP",0)));
+  mk("F09","Khu vực WIP","Thiếu label OK/NG","QC","open",P("Khu vực WIP",1));
+  const rep={reported_by:"Demo PRO",reported_part:"PRO",reported_at:iso(0),reported_round:2,report_note:"Đã sắp xếp lại theo layout"};
+  const blobs={};
+  const find=id=>db.locs.find(x=>x.id===id);
+  const ev=(l,a,m,note)=>db.events.push({id:++n,loc_id:l.id,sid:l.sid,action:a,by_name:m.name,by_part:m.part,round:db.round,note:note||null,at:new Date().toISOString()});
+  const me=t=>{const k=String(t||"").replace("T_","");return users[k]?Object.assign({name:k,ehs:db.ehs.includes(k)},users[k]):null;};
+  const NEED=(m,e)=>{if(!m)throw new Error("Phiên đăng nhập không hợp lệ");if(e&&!m.ehs)throw new Error("Chỉ PIC EHS được thực hiện thao tác này");};
+  const reset=l=>Object.assign(l,{reported_by:null,reported_part:null,reported_at:null,reported_round:null,report_photo:null,report_note:null,verified_by:null,verified_at:null});
+  return{
+    storage:{from:()=>({upload:async(p,b)=>{blobs[p]=URL.createObjectURL(b);return{error:null};},getPublicUrl:p=>({data:{publicUrl:blobs[p]||""}})})},
+    rpc:async(fn,a)=>{try{
+      const m=me(a.p_token);
+      if(fn==="list_user_names")return{data:Object.keys(users)};
+      if(fn==="login")return{data:users[a.p_name]&&a.p_pin==="1234"?Object.assign({token:"T_"+a.p_name,name:a.p_name},users[a.p_name]):null};
+      if(fn==="logout")return{data:null};
+      if(fn==="vt_state")return{data:JSON.parse(JSON.stringify({me:m,round:db.round,req_photo:db.req_photo,ehs:db.ehs,na:db.na,locs:db.locs,events:db.events}))};
+      if(fn==="vt_add_pin"){NEED(m,true);if((a.p_items||[]).some(it=>!it.photo))throw new Error("Bắt buộc có ảnh cho mỗi vị trí NG");let pid=a.p_pin,zone=a.p_zone,x=a.p_x,y=a.p_y;if(pid){const e=db.locs.find(l=>l.pin_id===pid);if(!e)throw new Error("Không tìm thấy ghim");zone=e.zone;x=e.x;y=e.y;}else pid="P"+(++n);let c=0;a.p_items.forEach(it=>{if(db.locs.some(l=>l.pin_id===pid&&l.sid===it.sid))return;mk(it.sid,zone,it.detail||"",it.owner_part||"","open",{pin_id:pid,x:x,y:y,created_round:db.round,created_by:m.name,created_at:new Date().toISOString(),init_photo:it.photo||null});db.na=db.na.filter(z=>z!==it.sid);c++;});return{data:{pin:pid,n:c}};}
+      if(fn==="vt_move_pin"){NEED(m,true);db.locs.forEach(l=>{if(l.pin_id===a.p_pin){l.x=a.p_x;l.y=a.p_y;}});return{data:null};}
+      if(fn==="vt_add_locations"){NEED(m,true);let c=0;a.p_items.forEach(it=>{if(db.locs.some(x=>x.sid===a.p_sid&&x.zone===it.zone&&x.detail===it.detail))return;const l=mk(a.p_sid,it.zone,it.detail||"",it.owner_part||"",it.status==="ok"?"verified":"open",{created_round:db.round,created_by:m.name,created_at:new Date().toISOString(),init_photo:it.photo||null});c++;});db.na=db.na.filter(x=>x!==a.p_sid);return{data:c};}
+      if(fn==="vt_copy_locations"){NEED(m,true);let c=0;db.locs.filter(x=>x.sid===a.p_from).forEach(x=>{if(!db.locs.some(y=>y.sid===a.p_to&&y.zone===x.zone&&y.detail===x.detail)){mk(a.p_to,x.zone,x.detail,x.owner_part,"open",{created_round:db.round,created_by:m.name,created_at:new Date().toISOString()});c++;}});return{data:c};}
+      if(fn==="vt_report_ok"){NEED(m,false);const l=find(a.p_loc);if(!l||l.status!=="open")throw new Error("Vị trí này đã được báo OK rồi");if(db.round===1&&!m.ehs)throw new Error("Lượt 1: PIC EHS đang rà soát, chưa nhận báo OK từ bộ phận");if(!m.ehs&&l.owner_part!==m.part)throw new Error("Vị trí này thuộc Part "+(l.owner_part||"(chưa gán)")+", bạn không có quyền báo OK");if(db.req_photo&&!m.ehs&&!a.p_photo)throw new Error("Cần chụp ảnh sau khi đã làm OK");Object.assign(l,{status:m.ehs?"verified":"reported",reported_by:m.name,reported_part:m.part,reported_at:new Date().toISOString(),reported_round:db.round,report_photo:a.p_photo||null,report_note:a.p_note||null,reject_note:null});if(m.ehs)Object.assign(l,{verified_by:m.name,verified_at:l.reported_at});ev(l,"report_ok",m);if(m.ehs)ev(l,"verify",m);return{data:null};}
+      if(fn==="vt_verify"){NEED(m,true);const l=find(a.p_loc);if(!l||l.status!=="reported")throw new Error("Vị trí này không ở trạng thái chờ duyệt");if(a.p_ok){Object.assign(l,{status:"verified",verified_by:m.name,verified_at:new Date().toISOString(),reject_note:null});ev(l,"verify",m);}else{if(!a.p_note)throw new Error("Cần ghi lý do từ chối");reset(l);l.status="open";l.reject_note=a.p_note;ev(l,"reject",m,a.p_note);}return{data:null};}
+      if(fn==="vt_reopen"){NEED(m,true);const l=find(a.p_loc);reset(l);l.status="open";l.reject_note=a.p_note;ev(l,"reopen",m,a.p_note);return{data:null};}
+      if(fn==="vt_edit_location"){NEED(m,true);const l=find(a.p_loc);Object.assign(l,{zone:a.p_zone,detail:a.p_detail||"",owner_part:a.p_owner||""});return{data:null};}
+      if(fn==="vt_remove_location"){NEED(m,true);const i=db.locs.findIndex(x=>x.id===a.p_loc);if(i>=0)db.locs.splice(i,1);return{data:null};}
+      if(fn==="vt_set_na"){NEED(m,true);db.na=db.na.filter(x=>x!==a.p_sid);if(a.p_na)db.na.push(a.p_sid);return{data:null};}
+      if(fn==="vt_set_setting"){NEED(m,true);if(a.p_key==="round")db.round=+a.p_value;else db.req_photo=a.p_value==="1";return{data:null};}
+      if(fn==="vt_set_ehs"){NEED(m,true);db.ehs=db.ehs.filter(x=>x!==a.p_name);if(a.p_on)db.ehs.push(a.p_name);return{data:null};}
+      return{data:null};
+    }catch(e){return{error:{message:e.message}};}}
+  };
+}
+
 /* ---------- đăng nhập ---------- */
 function loadSes(){for(const k of["vt001_ses","pro001_ses"]){try{const s=JSON.parse(localStorage.getItem(k)||"null");if(s&&s.token)return s;}catch(e){}}return null;}
 async function boot(){
-  sb=supabase.createClient(SUPA_URL,SUPA_ANON,{auth:{persistSession:false,autoRefreshToken:false}});
+  sb=DEMO?demoClient():supabase.createClient(SUPA_URL,SUPA_ANON,{auth:{persistSession:false,autoRefreshToken:false}});
+  if(DEMO){const b=document.createElement("div");b.style.cssText="background:#7C3AED;color:#fff;text-align:center;font-size:12px;padding:5px;font-weight:600";b.textContent="CHẾ ĐỘ DEMO — dữ liệu mẫu, không lưu vào hệ thống thật";document.body.prepend(b);$("lgErr").textContent="Demo: chọn Demo EHS / Demo PRO / Demo QC / Demo Kho · PIN 1234";$("lgErr").classList.remove("hidden");$("lgErr").style.background="#EDE9FE";$("lgErr").style.color="#5B21B6";}
   if(GUEST){await reload();show();return;}
-  const s=loadSes();
+  const s=DEMO?null:loadSes();
   if(s){SES=s;try{await reload();if(S.me){show();return;}}catch(e){}SES=null;try{localStorage.removeItem("vt001_ses");}catch(e){}}
   $("login").classList.remove("hidden");
   try{const names=await rpc("list_user_names",{});(names||[]).forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;$("lgName").appendChild(o);});}
@@ -160,7 +252,7 @@ async function doLogin(){
   const b=$("lgBtn");b.disabled=true;b.textContent="Đang đăng nhập…";$("lgErr").classList.add("hidden");
   try{const r=await rpc("login",{p_name:name,p_pin:pin});if(!r)return showErr("Sai tên hoặc PIN.");
     SES={token:r.token,name:r.name,role:r.role,part:r.part||""};
-    try{localStorage.setItem("vt001_ses",JSON.stringify(SES));}catch(e){}
+    if(!DEMO)try{localStorage.setItem("vt001_ses",JSON.stringify(SES));}catch(e){}
     await reload();$("login").classList.add("hidden");show();
   }catch(e){showErr("Lỗi: "+e.message);}finally{b.disabled=false;b.textContent="Đăng nhập";}
 }
@@ -185,17 +277,19 @@ function render(){
   $("who").textContent=S.me?(S.me.name+" · "+(S.me.part||"—")+(S.me.ehs?" · PIC EHS":"")):"Khách · chỉ xem báo cáo";
   $("rchip").textContent="Lượt "+S.round;
   const pend=S.locs.filter(l=>l.status==="reported").length;
-  const tabs=GUEST?[["report","📊 Báo cáo"]]:[["M","📋 80 mục"],["F","🔁 12 lỗi cũ"]].concat(isEHS()?[["P","✅ Chờ duyệt"+(pend?'<span class="badge">'+pend+"</span>":"")]]:[]).concat([["report","📊 Báo cáo"]]).concat(isEHS()?[["set","⚙️ Cài đặt"]]:[]);
+  const tabs=GUEST?[["map","🗺 Bản đồ"],["report","📊 Báo cáo"]]:[["M","📋 Rà soát 80 mục"],["F","🔁 12 lỗi cũ"],["map","🗺 Bản đồ"]].concat(isEHS()?[["P","✅ Chờ duyệt"+(pend?'<span class="badge">'+pend+"</span>":"")]]:[]).concat([["report","📊 Báo cáo"]]).concat(isEHS()?[["set","⚙️ Cài đặt"]]:[]);
   if(!tabs.some(t=>t[0]===TAB))TAB=tabs[0][0];
   $("nav").innerHTML=tabs.map(t=>'<button class="'+(t[0]===TAB?"on":"")+'" data-tab="'+t[0]+'">'+t[1]+"</button>").join("");
   $("nav").querySelectorAll("button").forEach(b=>b.onclick=()=>{TAB=b.dataset.tab;render();window.scrollTo(0,0);});
   const m=$("main");
   if(TAB==="M"||TAB==="F")m.innerHTML=renderList(TAB);
   else if(TAB==="P")m.innerHTML=renderPending();
+  else if(TAB==="map")m.innerHTML=renderMap();
   else if(TAB==="report")m.innerHTML=renderReport();
   else if(TAB==="set")m.innerHTML=renderSettings();
   bindMain();
   if(CUR&&$("modal").innerHTML)openSubject(CUR,true);
+  else if(CURPIN&&$("modal").innerHTML)openPin(CURPIN,true);
 }
 
 function roundBanner(){
@@ -204,25 +298,36 @@ function roundBanner(){
 }
 function renderList(kind){
   const list=SUBJ.filter(s=>s.tab===kind);
-  const q=FILT.q.toLowerCase();
-  const rows=list.filter(s=>{
-    if(FILT.g&&s.g!==FILT.g)return false;
-    if(q&&!(s.title+" "+s.desc+" "+s.label+" "+s.bp).toLowerCase().includes(q))return false;
-    const st=stat(s.sid);
-    if(FILT.f==="mine")return locsOf(s.sid).some(l=>S.me&&l.owner_part&&l.owner_part===S.me.part&&l.status==="open");
-    if(FILT.f==="new")return !st.t&&!st.na;
-    if(FILT.f==="open")return st.o>0||st.r>0;
-    if(FILT.f==="done")return st.na||(st.t&&st.v===st.t);
-    return true;});
   let h=roundBanner();
-  h+='<div class="bar"><input class="inp" id="fq" placeholder="Tìm mục, nội dung…" value="'+esc(FILT.q)+'"><select class="inp" id="ff" style="max-width:190px">'+[["all","Tất cả"],["mine","Còn tồn của Part tôi"],["new","Chưa rà soát"],["open","Còn tồn / chờ duyệt"],["done","Hoàn tất / N/A"]].map(o=>'<option value="'+o[0]+'"'+(FILT.f===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+"</select></div>";
-  h+='<div class="chips"><button class="chip'+(!FILT.g?" on":"")+'" data-g="">Tất cả nhóm</button>'+Object.keys(GROUPS).map(g=>'<button class="chip'+(FILT.g===g?" on":"")+'" data-g="'+g+'">'+g+" · "+GROUPS[g].n+"</button>").join("")+"</div>";
-  const tot=list.reduce((a,s)=>{const t=stat(s.sid);a.t+=t.t;a.v+=t.v;a.r+=t.r;return a;},{t:0,v:0,r:0});
-  h+='<div class="meta" style="margin-bottom:8px">'+rows.length+"/"+list.length+" mục · "+tot.t+" vị trí · "+tot.v+" đã xác nhận OK · "+tot.r+" chờ duyệt</div>";
-  h+=rows.map(s=>{const st=stat(s.sid);
-    const bar=st.t?'<div class="prog"><i class="pv" style="width:'+pc(st.v,st.t)+'%"></i><i class="pr" style="width:'+pc(st.r,st.t)+'%"></i><i class="po" style="width:'+pc(st.o,st.t)+'%"></i></div>':"";
-    return'<div class="subj" data-sid="'+s.sid+'"><div class="h"><span class="no">'+s.label+'</span><span class="gb">'+s.g+" · "+GROUPS[s.g].n+'</span><span class="muc">'+esc(s.title)+'</span></div><div class="nd">'+esc(s.desc)+"</div>"+bar+'<div class="meta">'+stLabel(st)+(st.t?"<span>"+st.v+"/"+st.t+" OK</span>":"")+"<span>BP: "+esc(s.bp)+"</span></div></div>";}).join("")||'<div class="meta">Không có mục phù hợp.</div>';
+  if(kind==="M"){
+    if(!FILT.g||FILT.g==="")FILT.g="A";
+    h+='<div class="grp-sub">Chọn nhóm vấn đề rồi đi rà soát lần lượt từng mục trên toàn bộ line/khu vực. Mỗi mục bấm 📍 để ghim vị trí NG.</div>';
+    h+='<div class="grp-pick">'+Object.keys(GROUPS).map(g=>{const xs=list.filter(s=>s.g===g);const d=xs.filter(s=>{const st=stat(s.sid);return st.t>0||st.na;}).length;const done=d>=xs.length;return'<button class="gbtn'+(FILT.g===g?" on":"")+(done?" ok":"")+'" data-g="'+g+'"><b>'+g+'</b><span>'+GROUPS[g].n+'</span><em>'+d+"/"+xs.length+(done?" ✓":"")+"</em></button>";}).join("")+"</div>";
+  }
+  const base=list.filter(s=> kind==="F"?true:s.g===FILT.g);
+  const q=FILT.q.toLowerCase();
+  const rows=base.filter(s=> !q || (s.title+" "+s.desc+" "+s.label+" "+s.bp).toLowerCase().includes(q));
+  h+='<div class="bar"><input class="inp" id="fq" placeholder="Tìm trong danh sách…" value="'+esc(FILT.q)+'"></div>';
+  const na=base.filter(s=>stat(s.sid).na).length, dn=base.filter(s=>stat(s.sid).t>0).length, tot=base.reduce((a,s)=>a+stat(s.sid).t,0);
+  h+='<div class="meta" style="margin-bottom:8px">'+(kind==="F"?"12 lỗi lần trước":("Nhóm "+FILT.g+" · "+GROUPS[FILT.g].n))+" — đã rà soát "+(dn+na)+"/"+base.length+" mục · "+tot+" vị trí đã ghim</div>";
+  h+=rows.map(s=>itemCard(s)).join("")||'<div class="note">Không có mục phù hợp.</div>';
   return h;
+}
+function itemCard(s){
+  const st=stat(s.sid), L=locsOf(s.sid);
+  const cls=st.na?"na":(st.t?(st.v===st.t?"done":"has"):"todo");
+  let h='<div class="item '+cls+'" data-sid="'+s.sid+'"><div class="ih"><span class="no">'+s.label+'</span><span class="gb">'+s.g+" · "+GROUPS[s.g].n+"</span>"+stLabel(st)+'</div>';
+  h+='<div class="muc">'+esc(s.title)+'</div><div class="nd2">'+esc(s.desc)+"</div>";
+  if(s.typ)h+='<div class="banner">'+(s.typ==="all"?"Lỗi sắp xếp/bố trí: rà <b>toàn bộ line/khu vực</b>, ghim từng vị trí còn tồn.":"Kiểm lại vị trí cũ <b>và các vị trí lỗi tương tự</b>.")+"</div>";
+  h+='<div class="meta"><span>BP: '+esc(s.bp)+"</span>"+(st.t?"<span>"+st.t+" vị trí</span>":"")+"</div>";
+  h+=L.map(l=>locCard(l,false)).join("");
+  if(isEHS()){
+    h+='<div class="acts">';
+    h+='<button class="btn sm" data-pin="'+s.sid+'">📍 Đánh dấu vị trí NG</button>';
+    if(!L.length)h+=st.na?'<button class="btn ghost sm" data-naoff="'+s.sid+'">Bỏ N/A</button>':'<button class="btn ghost sm" data-na="'+s.sid+'">Không có NG (N/A)</button>';
+    h+="</div>";
+  }else if(!L.length){h+='<div class="note">'+(st.na?"EHS xác nhận mục này không có vị trí.":"Chưa ghi nhận vị trí nào.")+"</div>";}
+  return h+"</div>";
 }
 function renderPending(){
   const L=S.locs.filter(l=>l.status==="reported");
@@ -234,12 +339,14 @@ function locCard(l,withSubj){
   if(withSubj)h+='<div class="meta"><span class="no">'+s.label+"</span><b>"+esc(s.title)+"</b></div>";
   h+='<div class="row"><span class="z">📍 '+esc(l.zone)+"</span>"+(l.owner_part?'<span class="pt">'+esc(l.owner_part)+"</span>":'<span class="pt">chưa gán Part</span>')+'<span class="st '+l.status+'">'+STN[l.status]+"</span></div>";
   if(l.detail)h+="<div>"+esc(l.detail)+"</div>";
+  if(l.x!=null&&l.y!=null)h+='<div class="note">📍 Đã ghim trên layout</div>';
   h+='<div class="note">Rà soát lượt '+l.created_round+" · "+esc(l.created_by||"")+" · "+fdt(l.created_at)+"</div>";
   if(l.init_photo)h+='<div><img src="'+esc(l.init_photo)+'" data-zoom="1" alt=""></div>';
   if(l.reject_note&&l.status==="open")h+='<div class="note r">↩ Bị trả lại: '+esc(l.reject_note)+"</div>";
   if(l.reported_by){h+='<div class="note">Báo OK lượt '+l.reported_round+" bởi "+esc(l.reported_by)+(l.reported_part?" ("+esc(l.reported_part)+")":"")+" · "+fdt(l.reported_at)+(l.report_note?" · "+esc(l.report_note):"")+"</div>";if(l.report_photo)h+='<div><img src="'+esc(l.report_photo)+'" data-zoom="1" alt=""></div>';}
   if(l.verified_by)h+='<div class="note">✔ EHS xác nhận: '+esc(l.verified_by)+" · "+fdt(l.verified_at)+"</div>";
   let a="";
+  if(!withSubj&&l.pin_id&&l.x!=null)a+='<button class="btn ghost sm" data-act="gopin" data-id="'+l.id+'">🗺 Xem ghim</button>';
   if(canReport(l))a+='<button class="btn ok sm" data-act="report" data-id="'+l.id+'">'+(isEHS()?"✓ Đã OK":"✓ Báo đã OK")+"</button>";
   if(isEHS()&&l.status==="reported")a+='<button class="btn ok sm" data-act="vok" data-id="'+l.id+'">✔ Duyệt</button><button class="btn bad sm" data-act="vno" data-id="'+l.id+'">✖ Từ chối</button>';
   if(isEHS()&&l.status!=="open")a+='<button class="btn ghost sm" data-act="reopen" data-id="'+l.id+'">↩ Mở lại</button>';
@@ -265,9 +372,10 @@ function renderReport(){
   const R=calc(SCOPE);
   let h=roundBanner();
   h+='<div class="bar"><select class="inp" id="scope" style="max-width:260px">'+[["all","Phạm vi: 80 mục + 12 lỗi cũ"],["M","Chỉ 80 mục check list"],["F","Chỉ 12 lỗi lần trước"]].map(o=>'<option value="'+o[0]+'"'+(SCOPE===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+'</select><button class="btn ghost sm" id="btnXls">⬇ Xuất Excel</button></div>';
-  h+='<div class="kpis"><div class="kpi"><b>'+R.t+'</b><span>Vị trí tồn tại vấn đề (mẫu số)</span></div><div class="kpi"><b style="color:#1D4ED8">'+(R.r+R.v)+'</b><span>Đã báo OK · '+pc(R.r+R.v,R.t)+'%</span></div><div class="kpi"><b style="color:var(--pass)">'+R.v+'</b><span>EHS đã xác nhận · '+pc(R.v,R.t)+'%</span></div><div class="kpi"><b style="color:var(--fail)">'+R.o+'</b><span>Còn chưa OK</span></div><div class="kpi"><b>'+(R.surveyed+R.na)+"/"+R.subs.length+'</b><span>Mục đã rà soát (gồm '+R.na+' N/A)</span></div></div>';
+  h+='<div class="kpis"><div class="kpi"><b>'+R.t+'</b><span>Vị trí tồn tại vấn đề (mẫu số)</span></div><div class="kpi"><b style="color:#1D4ED8">'+(R.r+R.v)+'</b><span>Đã báo OK · '+pc(R.r+R.v,R.t)+'%</span></div><div class="kpi"><b style="color:var(--pass)">'+R.v+'</b><span>EHS đã xác nhận · '+pc(R.v,R.t)+'%</span></div><div class="kpi"><b style="color:var(--fail)">'+R.o+'</b><span>Còn chưa OK</span></div><div class="kpi"><b>'+new Set(R.L.filter(l=>l.pin_id&&l.x!=null).map(l=>l.pin_id)).size+'</b><span>Ghim trên bản đồ</span></div><div class="kpi"><b>'+(R.surveyed+R.na)+"/"+R.subs.length+'</b><span>Mục đã rà soát (gồm '+R.na+' N/A)</span></div></div>';
   const tr=(name,x)=>'<tr><td>'+esc(name)+'</td><td class="n">'+x.t+'</td><td class="n">'+(x.r+x.v)+'</td><td class="n">'+x.v+'</td><td class="n">'+x.o+'</td><td class="n">'+pc(x.r+x.v,x.t)+'%</td><td class="n">'+pc(x.v,x.t)+"%</td></tr>";
   const head='<tr><th>{0}</th><th class="n">Vị trí</th><th class="n">Báo OK</th><th class="n">Xác nhận</th><th class="n">Còn tồn</th><th class="n">% báo</th><th class="n">% xác nhận</th></tr>';
+  h+='<h3 class="sec">Tiến độ rà soát theo nhóm</h3><table><tr><th>Nhóm</th><th class="n">Mục</th><th class="n">Đã rà soát</th><th class="n">N/A</th><th class="n">Chưa</th><th class="n">Vị trí</th></tr>'+Object.keys(GROUPS).map(g=>{const xs=R.bySubj.filter(x=>x.s.g===g);if(!xs.length)return"";const d=xs.filter(x=>x.st.t>0).length,na=xs.filter(x=>x.st.na).length;return"<tr><td>"+g+" · "+GROUPS[g].n+'</td><td class="n">'+xs.length+'</td><td class="n">'+d+'</td><td class="n">'+na+'</td><td class="n">'+(xs.length-d-na)+'</td><td class="n">'+xs.reduce((a,x)=>a+x.st.t,0)+"</td></tr>";}).join("")+"</table>";
   h+='<h3 class="sec">Theo Part phụ trách</h3><table>'+head.replace("{0}","Part")+Object.keys(R.byPart).sort().map(k=>tr(k,R.byPart[k])).join("")+"</table>";
   h+='<h3 class="sec">Theo nhóm</h3><table>'+head.replace("{0}","Nhóm")+Object.keys(R.byGroup).sort().map(k=>tr(k+" · "+GROUPS[k].n,R.byGroup[k])).join("")+"</table>";
   const rk=Object.keys(R.rounds).sort((a,b)=>a-b);
@@ -281,7 +389,7 @@ function exportXls(){
   const R=calc(SCOPE);const wb=XLSX.utils.book_new();
   const add=(n,a)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a),n);
   add("Theo mục",[["Mã","Nhóm","Hạng mục","Nội dung","Bộ phận","Tổng vị trí","Báo OK","Xác nhận","Còn tồn","N/A"]].concat(R.bySubj.map(x=>[x.s.label,x.s.g,x.s.title,x.s.desc,x.s.bp,x.st.t,x.st.r+x.st.v,x.st.v,x.st.o,x.st.na?"N/A":""])));
-  add("Vị trí chi tiết",[["Mã","Hạng mục","Khu vực","Mô tả","Part","Trạng thái","Lượt rà soát","Người rà soát","Người báo OK","Lượt báo","Thời gian báo","EHS xác nhận","Lý do trả lại"]].concat(R.L.map(l=>[BY[l.sid].label,BY[l.sid].title,l.zone,l.detail,l.owner_part,STN[l.status],l.created_round,l.created_by,l.reported_by||"",l.reported_round||"",l.reported_at?fdt(l.reported_at):"",l.verified_by||"",l.reject_note||""])));
+  add("Vị trí chi tiết",[["Mã","Hạng mục","Khu vực","Mô tả","Part","Trạng thái","Lượt rà soát","Tọa độ X","Tọa độ Y","Người rà soát","Người báo OK","Lượt báo","Thời gian báo","EHS xác nhận","Lý do trả lại"]].concat(R.L.map(l=>[BY[l.sid].label,BY[l.sid].title,l.zone,l.detail,l.owner_part,STN[l.status],l.created_round,l.x==null?"":+l.x,l.y==null?"":+l.y,l.created_by,l.reported_by||"",l.reported_round||"",l.reported_at?fdt(l.reported_at):"",l.verified_by||"",l.reject_note||""])));
   const pr=o=>Object.keys(o).sort().map(k=>[k,o[k].t,o[k].r+o[k].v,o[k].v,o[k].o,pc(o[k].r+o[k].v,o[k].t)/100,pc(o[k].v,o[k].t)/100]);
   const ph=["","Vị trí","Báo OK","Xác nhận","Còn tồn","% báo","% xác nhận"];
   add("Theo Part",[ph].concat(pr(R.byPart)));add("Theo nhóm",[ph].concat(pr(R.byGroup)));
@@ -301,11 +409,17 @@ function renderSettings(){
 let CUR=null;
 function bindMain(){
   const m=$("main");
-  m.querySelectorAll(".subj").forEach(e=>e.onclick=()=>openSubject(e.dataset.sid));
+  m.querySelectorAll("[data-pin]").forEach(b=>b.onclick=()=>pinDialog(b.dataset.pin));
+  m.querySelectorAll("[data-na]").forEach(b=>b.onclick=()=>call("vt_set_na",{p_sid:b.dataset.na,p_na:true},"Đã đánh dấu N/A"));
+  m.querySelectorAll("[data-naoff]").forEach(b=>b.onclick=()=>call("vt_set_na",{p_sid:b.dataset.naoff,p_na:false},"Đã bỏ N/A"));
   const fq=$("fq");if(fq)fq.oninput=()=>{FILT.q=fq.value;const p=fq.selectionStart;render();const n=$("fq");n.focus();n.setSelectionRange(p,p);};
-  const ff=$("ff");if(ff)ff.onchange=()=>{FILT.f=ff.value;render();};
-  m.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{FILT.g=b.dataset.g;render();});
+  m.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{FILT.g=b.dataset.g;FILT.q="";render();window.scrollTo(0,0);});
   const sc=$("scope");if(sc)sc.onchange=()=>{SCOPE=sc.value;render();};
+  m.querySelectorAll("[data-mg]").forEach(b=>b.onclick=()=>{MF.g=b.dataset.mg;render();});
+  const mp=$("mp");if(mp)mp.onchange=()=>{MF.part=mp.value;render();};
+  const ms=$("ms");if(ms)ms.onchange=()=>{MF.st=ms.value;render();};
+  const mz=$("mz");if(mz)mz.onclick=()=>{MAPZ=MAPZ>1?1:2.6;render();};
+  m.querySelectorAll(".pin").forEach(e=>e.onclick=()=>openPin(e.dataset.pin));
   const bx=$("btnXls");if(bx)bx.onclick=exportXls;
   bindActs(m);
   if(TAB==="set")bindSettings();
@@ -325,21 +439,20 @@ async function bindSettings(){
 
 /* ---------- modal ---------- */
 function openModal(html){$("modal").innerHTML='<div class="ovl"><div class="sheet">'+html+"</div></div>";$("modal").querySelector(".ovl").onclick=e=>{if(e.target.classList.contains("ovl"))closeModal();};const x=$("modal").querySelector(".x");if(x)x.onclick=closeModal;}
-function closeModal(){$("modal").innerHTML="";CUR=null;PH={};}
+function closeModal(){$("modal").innerHTML="";CUR=null;CURPIN=null;PH={};}
 function openSubject(sid,keepScroll){
   CUR=sid;const s=BY[sid],st=stat(sid),L=locsOf(sid);
   const sheet=$("modal").querySelector(".sheet");const sc=sheet?sheet.scrollTop:0;
   let h='<button class="x">Đóng</button><h2><span class="no">'+s.label+"</span> "+esc(s.title)+'</h2><div class="meta"><span class="gb">'+s.g+" · "+GROUPS[s.g].n+"</span><span>BP: "+esc(s.bp)+"</span>"+stLabel(st)+"</div>";
   h+='<p style="margin:8px 0;font-size:14px">'+esc(s.desc)+"</p>";
   if(s.typ)h+='<div class="banner">'+(s.typ==="all"?"Lỗi về sắp xếp/bố trí: kiểm tra <b>toàn bộ line / khu vực</b>, ghi từng vị trí còn tồn tại.":"Kiểm tra lại vị trí cũ <b>và các vị trí có lỗi tương tự</b>.")+"</div>";
-  if(isEHS()){h+='<div class="row" style="margin:8px 0"><button class="btn sm" id="bAdd">＋ Thêm vị trí</button><button class="btn ghost sm" id="bCopy">⧉ Sao chép từ mục khác</button>'+(st.na?'<button class="btn ghost sm" id="bNaOff">Bỏ N/A</button>':(st.t?"":'<button class="btn ghost sm" id="bNa">Không có vị trí (N/A)</button>'))+"</div>";}
+  if(isEHS()){h+='<div class="row" style="margin:8px 0"><button class="btn sm" id="bPin">📍 Ghim vị trí NG trên bản đồ</button>'+(st.na?'<button class="btn ghost sm" id="bNaOff">Bỏ N/A</button>':(st.t?"":'<button class="btn ghost sm" id="bNa">Không có vị trí (N/A)</button>'))+"</div>";}
   if(!L.length)h+='<div class="note" style="margin:10px 0">'+(st.na?"PIC EHS đã xác nhận mục này không có vị trí liên quan.":"Chưa có vị trí nào được ghi nhận.")+"</div>";
   h+=L.map(l=>locCard(l,false)).join("");
   openModal(h);
   const md=$("modal");bindActs(md);
   const q=id=>md.querySelector("#"+id);
-  if(q("bAdd"))q("bAdd").onclick=()=>addDialog(sid);
-  if(q("bCopy"))q("bCopy").onclick=()=>copyDialog(sid);
+  if(q("bPin"))q("bPin").onclick=()=>pinDialog(sid);
   if(q("bNa"))q("bNa").onclick=()=>call("vt_set_na",{p_sid:sid,p_na:true},"Đã đánh dấu N/A");
   if(q("bNaOff"))q("bNaOff").onclick=()=>call("vt_set_na",{p_sid:sid,p_na:false},"Đã bỏ N/A");
   if(keepScroll){const n=md.querySelector(".sheet");if(n)n.scrollTop=sc;}
@@ -354,7 +467,8 @@ async function upPhoto(id){const b=PH[id];if(!b)return null;const path="vt/"+Dat
 /* thao tác */
 function act(a,id){
   const l=S.locs.find(x=>x.id===id);if(!l)return;
-  if(a==="report")reportDialog(l);
+  if(a==="gopin"){closeModal();TAB="map";render();openPin(l.pin_id);window.scrollTo(0,0);}
+  else if(a==="report")reportDialog(l);
   else if(a==="vok")call("vt_verify",{p_loc:id,p_ok:true,p_note:null},"Đã xác nhận OK");
   else if(a==="vno")noteDialog("Từ chối báo OK","Lý do (bộ phận sẽ thấy)","vt_verify",{p_loc:id,p_ok:false},"Đã trả lại");
   else if(a==="reopen")noteDialog("Mở lại vị trí","Lý do mở lại","vt_reopen",{p_loc:id},"Đã mở lại");
@@ -387,29 +501,84 @@ function partSel(id,val){return'<select class="inp" id="'+id+'"><option value=""
 function editDialog(l){
   sub("Sửa vị trí",'<label class="f">Khu vực<input class="inp" id="ez" value="'+esc(l.zone)+'"></label><label class="f" style="margin-top:8px">Mô tả<textarea class="inp" id="ed">'+esc(l.detail)+'</textarea></label><label class="f" style="margin-top:8px">Part phụ trách'+partSel("eo",l.owner_part)+"</label>",async box=>{await direct("vt_edit_location",{p_loc:l.id,p_zone:box.querySelector("#ez").value,p_detail:box.querySelector("#ed").value,p_owner:box.querySelector("#eo").value},"Đã lưu");});
 }
-function addDialog(sid){
-  const s=BY[sid];let h='<div class="note">'+esc(s.title)+'</div><input class="inp" id="zq" placeholder="Tìm khu vực…" style="margin:8px 0">';
-  Object.keys(LINE_OPTS).forEach(g=>{h+='<div class="grp" data-zg="'+esc(g)+'">'+esc(g)+'</div><div class="zones" data-zg="'+esc(g)+'">'+LINE_OPTS[g].map(z=>'<label data-z="'+esc(z.toLowerCase())+'"><input type="checkbox" value="'+esc(z)+'"> '+esc(z)+"</label>").join("")+"</div>";});
-  h+='<label class="f" style="margin-top:10px">Khu vực khác (nhập tay, cách nhau bằng dấu ;)<input class="inp" id="zc" placeholder="VD: Tủ điện cột C14; Phòng kỹ thuật điện số 2"></label>'
-   +'<label class="f" style="margin-top:8px">Mô tả vấn đề (áp dụng cho các vị trí đã chọn)<textarea class="inp" id="zd"></textarea></label>'
-   +'<label class="f" style="margin-top:8px">Part phụ trách'+partSel("zo",guessPart(s.bp))+"</label>"
-   +'<div class="f" style="margin-top:8px">Tình trạng khi rà soát</div><div class="sw"><label class="on"><input type="radio" name="zs" value="open" checked>Chưa OK (có vấn đề)</label><label><input type="radio" name="zs" value="ok">Đã OK</label></div>'
-   +photoBox("ad","Ảnh hiện trạng (không bắt buộc, dùng cho 1 vị trí)");
-  const box=sub("Thêm vị trí",h,async bx=>{
-    const zones=[...bx.querySelectorAll(".zones input:checked")].map(i=>i.value).concat(bx.querySelector("#zc").value.split(";").map(x=>x.trim()).filter(Boolean));
-    if(!zones.length)throw new Error("Chọn ít nhất 1 khu vực");
-    let url=null;if(PH.ad&&zones.length===1)url=await upPhoto("ad");
-    const st=bx.querySelector("input[name=zs]:checked").value;
-    const items=zones.map(z=>({zone:z,detail:bx.querySelector("#zd").value.trim(),owner_part:bx.querySelector("#zo").value,status:st,photo:url||""}));
-    const n=await direct("vt_add_locations",{p_sid:sid,p_items:items});toast("Đã thêm "+n+" vị trí"+(n<items.length?" (bỏ qua "+(items.length-n)+" vị trí trùng)":""));PH={};},"Thêm");
-  box.querySelectorAll(".zones input").forEach(i=>i.onchange=()=>i.parentNode.classList.toggle("on",i.checked));
-  box.querySelectorAll(".sw input").forEach(i=>i.onchange=()=>box.querySelectorAll(".sw label").forEach(l=>l.classList.toggle("on",l.querySelector("input").checked)));
-  box.querySelector("#zq").oninput=e=>{const q=e.target.value.toLowerCase();box.querySelectorAll(".zones label").forEach(l=>l.style.display=l.dataset.z.includes(q)?"":"none");};
+/* ---------- ghim vị trí trên layout ---------- */
+function zoneSelect(id){return'<select class="inp" id="'+id+'"><option value="">— Chọn khu vực —</option>'+Object.keys(LINE_OPTS).map(g=>'<optgroup label="'+esc(g)+'">'+LINE_OPTS[g].map(z=>"<option>"+esc(z)+"</option>").join("")+"</optgroup>").join("")+'<option value="__other">Khác (không có trên layout)</option></select>';}
+function pinsOf(){const m={};S.locs.forEach(l=>{if(l.x==null||l.y==null||!l.pin_id)return;(m[l.pin_id]||(m[l.pin_id]={id:l.pin_id,x:+l.x,y:+l.y,zone:l.zone,rows:[]})).rows.push(l);});return Object.values(m);}
+const PCOL={open:"#DC2626",reported:"#2563EB",verified:"#0E9F6E"};
+function pinState(rows){return rows.some(r=>r.status==="open")?"open":rows.some(r=>r.status==="reported")?"reported":"verified";}
+function drawPin(){
+  const c=$("pinCanvas");if(!c||!PS||!PS.dz)return;const z=PS.z,dz=PS.dz;
+  const NW=LImg.naturalWidth||2560,NH=LImg.naturalHeight||1811;
+  const sx=dz.x/100*NW,sy=dz.y/100*NH,sw=dz.w/100*NW,sh=dz.h/100*NH;
+  const maxW=Math.min(720,(c.parentNode.clientWidth||340)-8),maxH=Math.max(240,Math.min(innerHeight*0.45,560));
+  const sc=Math.min(maxW/sw,maxH/sh),CW=Math.max(60,Math.round(sw*sc)),CH=Math.max(60,Math.round(sh*sc));
+  c.width=CW;c.height=CH;c.style.width=CW+"px";c.style.height=CH+"px";
+  const ctx=c.getContext("2d");ctx.fillStyle="#f1f5f9";ctx.fillRect(0,0,CW,CH);ctx.imageSmoothingQuality="high";
+  try{ctx.drawImage(LImg,sx,sy,sw,sh,0,0,CW,CH);}catch(e){}
+  ctx.strokeStyle="rgba(23,66,122,.9)";ctx.lineWidth=2;ctx.setLineDash([6,4]);
+  ctx.strokeRect((z.x-dz.x)/dz.w*CW,(z.y-dz.y)/dz.h*CH,z.w/dz.w*CW,z.h/dz.h*CH);ctx.setLineDash([]);
+  PS.px=[];
+  pinsOf().forEach(p=>{if(p.x<dz.x||p.x>dz.x+dz.w||p.y<dz.y||p.y>dz.y+dz.h)return;
+    const fx=(p.x-dz.x)/dz.w*CW,fy=(p.y-dz.y)/dz.h*CH;PS.px.push({id:p.id,px:fx,py:fy});
+    ctx.beginPath();ctx.arc(fx,fy,10,0,7);ctx.fillStyle=PCOL[pinState(p.rows)];ctx.fill();
+    ctx.lineWidth=PS.pin===p.id?4:2;ctx.strokeStyle=PS.pin===p.id?"#14202E":"#fff";ctx.stroke();
+    ctx.fillStyle="#fff";ctx.font="bold 11px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(String(p.rows.length),fx,fy+1);});
+  if(PS.sel){const fx=(PS.sel.x-dz.x)/dz.w*CW,fy=(PS.sel.y-dz.y)/dz.h*CH;ctx.fillStyle="rgba(220,38,38,.25)";ctx.beginPath();ctx.arc(fx,fy,15,0,7);ctx.fill();ctx.font="30px serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("🚩",fx,fy-3);}
+  const h=$("phint");if(h){const n=PS.pin?S.locs.filter(l=>l.pin_id===PS.pin).length:0;h.innerHTML=PS.pin?'<b style="color:var(--brand)">Thêm mục vào ghim đang chọn</b> (ghim này đã có '+n+" mục). Chạm chỗ trống để tạo ghim mới.":PS.sel?'<b style="color:var(--fail)">Ghim mới</b> tại vị trí vừa chạm. Chạm lại để đổi chỗ.':"Chạm vào bản đồ để ghim vị trí NG. Chạm vào ghim có sẵn để thêm mục vào ghim đó.";}
 }
-function copyDialog(sid){
-  const opts=SUBJ.filter(x=>x.sid!==sid&&stat(x.sid).t>0).map(x=>'<option value="'+x.sid+'">'+x.label+" · "+esc(x.title.slice(0,60))+" ("+stat(x.sid).t+" vị trí)</option>").join("");
-  if(!opts){toast("Chưa có mục nào có vị trí để sao chép",true);return;}
-  sub("Sao chép danh sách vị trí",'<div class="note">Các vị trí được sao chép với trạng thái <b>Chưa OK</b>.</div><label class="f" style="margin-top:8px">Từ mục<select class="inp" id="cf">'+opts+"</select></label>",async box=>{const n=await direct("vt_copy_locations",{p_from:box.querySelector("#cf").value,p_to:sid});toast("Đã sao chép "+n+" vị trí");},"Sao chép");
+function pinTap(e){
+  const c=$("pinCanvas");if(!c||!PS||!PS.dz)return;const dz=PS.dz,r=c.getBoundingClientRect(),pt=e.touches&&e.touches[0]?e.touches[0]:e;
+  const cx=(pt.clientX-r.left)*(c.width/r.width),cy=(pt.clientY-r.top)*(c.height/r.height);
+  const hit=(PS.px||[]).find(p=>Math.hypot(p.px-cx,p.py-cy)<=14);
+  if(hit){PS.pin=hit.id;PS.sel=null;}
+  else{const fx=Math.min(1,Math.max(0,(pt.clientX-r.left)/r.width)),fy=Math.min(1,Math.max(0,(pt.clientY-r.top)/r.height));PS.pin=null;PS.sel={x:Math.round((dz.x+fx*dz.w)*100)/100,y:Math.round((dz.y+fy*dz.h)*100)/100};}
+  drawPin();
+}
+function pinDialog(sid){
+  const s=BY[sid];PS={sid,zone:"",z:null,dz:null,sel:null,pin:null,px:[]};
+  const h='<div class="note">'+esc(s.title)+" — "+esc(s.desc.slice(0,120))+'</div><label class="f" style="margin-top:8px">Khu vực'+zoneSelect("pz")+'</label><input class="inp" id="pzo" placeholder="Tên khu vực (không có trên layout)" style="margin-top:6px;display:none"><div id="pcv" class="cvwrap" style="margin:8px 0"></div><div id="phint" class="note"></div>'
+   +'<label class="f" style="margin-top:8px">Mô tả vấn đề tại vị trí này<textarea class="inp" id="zd"></textarea></label><label class="f" style="margin-top:8px">Part phụ trách'+partSel("zo",guessPart(s.bp))+"</label>"+photoBox("ad","📷 Ảnh hiện trạng — BẮT BUỘC, chụp từ điện thoại");
+  const box=sub("📍 Ghim vị trí NG",h,async bx=>{
+    if(!PS.zone)throw new Error("Chọn khu vực");
+    const other=PS.zone==="__other";let zname=PS.zone;
+    if(other){zname=bx.querySelector("#pzo").value.trim();if(!zname)throw new Error("Nhập tên khu vực");}
+    else if(!PS.pin&&!PS.sel)throw new Error("Chạm vào bản đồ để chọn vị trí NG");
+    if(!PH.ad)throw new Error("Bắt buộc chụp ảnh hiện trạng (chụp từ điện thoại) cho mỗi vị trí NG");
+    const url=await upPhoto("ad");
+    const items=[{sid,detail:bx.querySelector("#zd").value.trim(),owner_part:bx.querySelector("#zo").value,photo:url||"",note:""}];
+    const r=await direct("vt_add_pin",{p_pin:other?null:PS.pin,p_zone:zname,p_x:(other||PS.pin)?null:PS.sel.x,p_y:(other||PS.pin)?null:PS.sel.y,p_items:items});
+    toast(r&&r.n?"Đã ghim · tiếp tục chạm để ghim vị trí khác của mục này":"Mục này đã có trong ghim đó",!(r&&r.n));
+    PS.sel=null;PS.pin=null;PH={};bx.querySelector("#zd").value="";const pv=bx.querySelector("#pv_ad");if(pv)pv.innerHTML="";const fi=bx.querySelector("input[data-ph=ad]");if(fi)fi.value="";drawPin();return false;
+  },"Lưu ghim");
+  const zs=box.querySelector("#pz");
+  zs.onchange=()=>{
+    PS.zone=zs.value;PS.sel=null;PS.pin=null;const cv=box.querySelector("#pcv"),po=box.querySelector("#pzo");po.style.display=PS.zone==="__other"?"":"none";
+    if(!PS.zone||PS.zone==="__other"){cv.innerHTML="";PS.z=PS.dz=null;box.querySelector("#phint").textContent=PS.zone?"Vị trí không có trên layout: lưu theo tên khu vực, không có ghim trên bản đồ.":"";return;}
+    PS.z=resolveZone(PS.zone);if(!PS.z){toast("Khu vực chưa có toạ độ",true);cv.innerHTML="";return;}
+    PS.dz=expandCrop(PS.z);cv.innerHTML='<canvas id="pinCanvas"></canvas>';
+    const c=cv.querySelector("canvas");c.addEventListener("click",pinTap);c.addEventListener("touchstart",e=>{e.preventDefault();pinTap(e);},{passive:false});drawPin();
+  };
+}
+/* ---------- bản đồ ---------- */
+function rowOk(l){const s=BY[l.sid];if(!s)return false;if(MF.g==="F"){if(s.kind!=="F")return false;}else if(MF.g&&(s.kind!=="M"||s.g!==MF.g))return false;if(MF.part&&l.owner_part!==MF.part)return false;if(MF.st&&l.status!==MF.st)return false;return true;}
+function renderMap(){
+  const P=pinsOf().map(p=>Object.assign({},p,{rows:p.rows.filter(rowOk)})).filter(p=>p.rows.length);
+  const all=S.locs.filter(rowOk),nox=all.filter(l=>l.x==null||l.y==null||!l.pin_id).length;
+  const cnt={open:0,reported:0,verified:0};all.forEach(l=>cnt[l.status]++);
+  let h=roundBanner();
+  h+='<div class="chips"><button class="chip'+(!MF.g?" on":"")+'" data-mg="">Tất cả</button>'+Object.keys(GROUPS).map(g=>'<button class="chip'+(MF.g===g?" on":"")+'" data-mg="'+g+'">'+g+" · "+GROUPS[g].n+"</button>").join("")+'<button class="chip'+(MF.g==="F"?" on":"")+'" data-mg="F">Lỗi cũ</button></div>';
+  h+='<div class="bar"><select class="inp" id="mp" style="max-width:150px"><option value="">Mọi Part</option>'+PARTS.map(p=>"<option"+(MF.part===p?" selected":"")+">"+p+"</option>").join("")+'</select><select class="inp" id="ms" style="max-width:170px">'+[["","Mọi trạng thái"],["open","Chưa OK"],["reported","Chờ duyệt"],["verified","Đã xác nhận OK"]].map(o=>'<option value="'+o[0]+'"'+(MF.st===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+'</select><button class="btn ghost sm" id="mz">🔍 '+(MAPZ>1?"Thu nhỏ":"Phóng to")+"</button></div>";
+  h+='<div id="mapScroll"><div id="mapBox" style="width:'+(MAPZ*100)+'%"><img id="mapImg" src="'+LAYOUT_SRC+'" alt="layout" onerror="if(!this.dataset.f){this.dataset.f=1;this.src=LAYOUT_FB}">'
+   +P.map(p=>'<div class="pin '+{open:"o",reported:"r",verified:"v"}[pinState(p.rows)]+'" data-pin="'+p.id+'" style="left:'+p.x+"%;top:"+yPct(p.y)+'%"><div class="dot"></div>'+(p.rows.length>1?'<span class="cnt">'+p.rows.length+"</span>":"")+"</div>").join("")+"</div></div>";
+  h+='<div class="meta" style="margin:8px 0"><span class="lg"><i style="background:var(--fail)"></i>Chưa OK '+cnt.open+'</span><span class="lg"><i style="background:#2563EB"></i>Chờ duyệt '+cnt.reported+'</span><span class="lg"><i style="background:var(--pass)"></i>Đã OK '+cnt.verified+"</span><span>"+P.length+" ghim · "+(all.length-nox)+" dòng mục</span>"+(nox?"<span>"+nox+" dòng chưa có toạ độ</span>":"")+"</div>";
+  if(!P.length)h+='<div class="note">Chưa có ghim nào'+(MF.g||MF.part||MF.st?" với bộ lọc này":"")+". PIC EHS rà soát ở tab \"Rà soát 80 mục\", chọn mục rồi bấm \"Ghim vị trí NG\".</div>";
+  return h;
+}
+function openPin(id,keep){
+  const rows=S.locs.filter(l=>l.pin_id===id);if(!rows.length){closeModal();return;}
+  CURPIN=id;CUR=null;const sh=$("modal").querySelector(".sheet"),sc=sh?sh.scrollTop:0;
+  let h='<button class="x">Đóng</button><h2>📍 '+esc(rows[0].zone)+'</h2><div class="meta"><span>'+rows.length+" mục tại ghim này</span></div>"+rows.map(l=>locCard(l,true)).join("");
+  openModal(h);bindActs($("modal"));if(keep){const n=$("modal").querySelector(".sheet");if(n)n.scrollTop=sc;}
 }
 
 $("lgBtn").onclick=doLogin;
