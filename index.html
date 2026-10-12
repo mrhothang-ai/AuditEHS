@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sổ xác nhận vị trí OK · VT-001 — IL-Sung Tech</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{--brand:#1E50A2;--brand-d:#123A78;--brand-t:#E8F0FA;--accent:#57B22E;--ink:#14202E;--muted:#5C6B80;--faint:#8A98AC;--bg:#EDF1F6;--surface:#fff;--line:#D8E0EA;--line2:#E9EEF4;--pass:#0E9F6E;--pass-t:#E6F6EF;--fail:#DC2626;--fail-t:#FCECEC;--amber:#C77A00;--amber-t:#FBF0DC;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:linear-gradient(180deg,#EEF3F9,#E4EBF3);background-attachment:fixed;color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:15px}
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(150deg,#123A78,#0D1E42)}
+.card{background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(8,20,45,.25);width:100%;max-width:380px;overflow:hidden;border-top:4px solid var(--accent)}
+.card-top{background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;padding:22px;text-align:center}
+.logo{font-family:var(--mono);font-weight:600;letter-spacing:.14em;font-size:13px;border:1.5px solid var(--accent);border-radius:7px;padding:5px 12px;display:inline-block;margin-bottom:10px}
+.card-top h1{font-size:18px}.card-top p{font-size:12px;opacity:.8;margin-top:4px}
+.card-body{padding:20px;display:grid;gap:12px}
+label.f{font-size:12px;font-weight:600;color:var(--muted);display:grid;gap:4px}
+.inp{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+.inp:focus{outline:none;border-color:var(--brand)}
+textarea.inp{resize:vertical;min-height:60px}
+.btn{border:none;border-radius:10px;padding:11px 16px;font-weight:600;font-size:14px;background:var(--brand);color:#fff}
+.btn:disabled{opacity:.5}
+.btn.ok{background:var(--pass)}.btn.bad{background:var(--fail)}.btn.ghost{background:#fff;color:var(--brand);border:1.5px solid var(--line)}.btn.sm{padding:7px 11px;font-size:13px;border-radius:8px}
+.err{color:var(--fail);font-size:13px;background:var(--fail-t);padding:8px 10px;border-radius:8px}
+header{background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;padding:10px 14px;position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px}
+header .t{flex:1;min-width:0}header .t b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}header .t span{font-size:11px;opacity:.8}
+.rchip{background:var(--accent);color:#fff;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:700;font-family:var(--mono);white-space:nowrap}
+.hbtn{background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:12px}
+nav{display:flex;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:52px;z-index:19;overflow-x:auto}
+nav button{flex:1;min-width:84px;padding:11px 8px;border:none;background:none;font-weight:600;font-size:13px;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+nav button.on{color:var(--brand);border-bottom-color:var(--brand)}
+nav .badge{background:var(--fail);color:#fff;border-radius:99px;font-size:11px;padding:1px 6px;margin-left:3px}
+main{max-width:860px;margin:0 auto;padding:12px 12px 80px}
+.banner{background:var(--amber-t);border:1px solid #EBCB8B;color:#7A4B00;border-radius:12px;padding:10px 12px;font-size:13px;margin-bottom:10px}
+.banner.blue{background:var(--brand-t);border-color:#B9CFEC;color:var(--brand-d)}
+.bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.bar .inp{flex:1;min-width:140px;padding:9px 11px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:4px 11px;font-size:12px;font-weight:600;color:var(--muted)}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.subj{background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:8px;display:grid;gap:6px;cursor:pointer}
+.subj:active{background:var(--brand-t)}
+.subj .h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.no{font-family:var(--mono);font-weight:600;font-size:12px;background:var(--brand-t);color:var(--brand);border-radius:6px;padding:2px 7px}
+.gb{font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;background:#EEF1F5;color:var(--muted)}
+.muc{font-weight:600;font-size:14px}
+.nd{font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.prog{height:7px;border-radius:99px;background:var(--line2);overflow:hidden;display:flex}
+.prog i{display:block;height:100%}
+.pv{background:var(--pass)}.pr{background:#3B82F6}.po{background:var(--fail)}
+.meta{font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.st{font-size:11px;font-weight:700;border-radius:99px;padding:2px 9px;display:inline-block}
+.st.open{background:var(--fail-t);color:var(--fail)}.st.reported{background:#E3EEFE;color:#1D4ED8}.st.verified{background:var(--pass-t);color:var(--pass)}.st.none{background:#EEF1F5;color:var(--muted)}.st.na{background:#F1EAFB;color:#6D28D9}
+.pt{font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;background:#FFF4D6;color:#8A5A00}
+.ovl{position:fixed;inset:0;background:rgba(10,20,40,.55);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:760px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 14px 24px}
+@media(min-width:760px){.ovl{align-items:center}.sheet{border-radius:18px}}
+.sheet h2{font-size:16px;margin-bottom:4px}
+.sheet .x{float:right;background:var(--line2);border:none;border-radius:8px;padding:5px 11px;font-weight:700}
+.loc{border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;display:grid;gap:6px;background:#FBFCFE}
+.loc .z{font-weight:600}
+.loc .acts{display:flex;gap:6px;flex-wrap:wrap}
+.loc img{max-width:110px;max-height:90px;border-radius:8px;border:1px solid var(--line);cursor:zoom-in}
+.note{font-size:12px;color:var(--muted)}.note.r{color:var(--fail)}
+.grp{font-size:12px;font-weight:700;color:var(--brand);margin:10px 0 5px}
+.zones{display:flex;flex-wrap:wrap;gap:6px}
+.zones label{border:1.5px solid var(--line);border-radius:8px;padding:4px 9px;font-size:13px;display:flex;gap:5px;align-items:center;background:#fff}
+.zones label.on{border-color:var(--brand);background:var(--brand-t)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.kpi b{display:block;font-size:24px;font-family:var(--mono)}.kpi span{font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13px;margin-bottom:12px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line2);text-align:left}th{background:var(--brand-t);color:var(--brand-d);font-size:12px}
+td.n,th.n{text-align:right;font-family:var(--mono)}
+h3.sec{font-size:14px;margin:14px 0 6px;color:var(--brand-d)}
+.pct{display:inline-block;min-width:44px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#14202E;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;z-index:99;max-width:90vw}
+.toast.e{background:var(--fail)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sw{display:flex;gap:6px}
+.sw label{flex:1;border:1.5px solid var(--line);border-radius:10px;padding:8px;text-align:center;font-weight:600;font-size:13px}
+.sw input{display:none}.sw label.on{border-color:var(--brand);background:var(--brand-t);color:var(--brand)}
+.prev img{max-width:100%;max-height:200px;border-radius:10px;margin-top:6px}
+</style>
+</head>
+<body>
+
+<div id="login" class="hidden">
+  <div class="card">
+    <div class="card-top"><div class="logo">VT-001</div><h1>Sổ xác nhận vị trí OK</h1><p>EHS / PRO.3M · IL-Sung Tech</p></div>
+    <div class="card-body">
+      <label class="f">Họ tên<select id="lgName" class="inp"><option value="">— Chọn tên —</option></select></label>
+      <label class="f">Mật khẩu (PIN)<input id="lgPin" class="inp" type="password" inputmode="numeric" autocomplete="current-password"></label>
+      <div id="lgErr" class="err hidden"></div>
+      <button class="btn" id="lgBtn">Đăng nhập</button>
+      <a href="?mode=report" style="text-align:center;font-size:13px;color:var(--brand)">Chỉ xem báo cáo (không cần đăng nhập)</a>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <div class="t"><b>Sổ xác nhận vị trí OK</b><span id="who"></span></div>
+    <span class="rchip" id="rchip"></span>
+    <button class="hbtn" id="btnOut"></button>
+  </header>
+  <nav id="nav"></nav>
+  <main id="main"></main>
+</div>
+<div id="modal"></div>
+<div id="toast"></div>
+
+<script>
+
+const SUPA_URL="https://inrdxezqaqrsliyuzofx.supabase.co";
+const SUPA_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlucmR4ZXpxYXFyc2xpeXV6b2Z4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0NDI0MDAsImV4cCI6MjEwMzAxODQwMH0.wTKRXdOKgjyqqCBC0UBlZ0aiVcuwuMUpvRxj1YJaU5A";
+const DATA={"GROUPS":{"A":{"n":"PCCC","t":"EHS"},"B":{"n":"Thiết bị","t":"EHS"},"C":{"n":"Hóa chất","t":"EHS"},"D":{"n":"An toàn điện","t":"EHS"},"E":{"n":"An toàn chung","t":"EHS"},"F":{"n":"Khu vực sản xuất","t":"PRO.3M"},"G":{"n":"Khu vực phụ trợ","t":"PRO.3M"}},"ITEMS":[{"sid":"M01","no":1,"g":"A","muc":"Bình chữa cháy","nd":"Bình chữa cháy bố trí đúng tiêu chuẩn (15–20 m/vị trí), chất chữa cháy phù hợp, không bị che chắn, không lấn layout, 5S sạch sẽ.","bp":"EHS"},{"sid":"M02","no":2,"g":"A","muc":"Họng chữa cháy","nd":"Niêm yết biển báo họng, HDSD, layout đạt yêu cầu; đồng hồ áp suất có vạch chỉ áp rõ ràng, chính xác.","bp":"EHS"},{"sid":"M03","no":3,"g":"A","muc":"Họng chữa cháy","nd":"Layout không bị che chắn/lấn chiếm, cửa họng mở dễ dàng; check list và 5S họng chữa cháy 1 lần/tháng (trước ngày 05).","bp":"EHS"},{"sid":"M04","no":4,"g":"A","muc":"Đèn chỉ dẫn thoát nạn, exit nền","nd":"Đèn Exit luôn sáng; khoảng cách 2 đèn chỉ hướng ≤ 30 m; hướng chỉ đúng, không dẫn vào khu máy móc, đường cụt.","bp":"EHS"},{"sid":"M05","no":5,"g":"A","muc":"Đèn chỉ dẫn thoát nạn, exit nền","nd":"Exit nền chỉ đúng hướng; đèn exit < 30 m, tem exit nền < 10 m trong xưởng và < 20 m ngoài hành lang; không bong rách, bạc màu.","bp":"EHS"},{"sid":"M06","no":6,"g":"A","muc":"An toàn thoát nạn","nd":"Lối thoát chính ≥ 1,2 m, lối đơn ≥ 0,7 m, không vật cản; cửa thoát hiểm có biển chỉ dẫn, không bị chốt/chặn/khóa/kẹt.","bp":"Sản xuất, EHS"},{"sid":"M07","no":7,"g":"A","muc":"An toàn thoát nạn","nd":"Đèn chiếu sáng khẩn cấp (đèn con cóc): mỗi vị trí ít nhất 1 bóng luôn sáng.","bp":"EHS"},{"sid":"M08","no":8,"g":"A","muc":"An toàn thoát nạn","nd":"Niêm yết sơ đồ thoát nạn khẩn cấp đúng vị trí, đúng hướng, đúng tiêu chuẩn Pro3M.","bp":"EHS"},{"sid":"M09","no":9,"g":"B","muc":"Cơ cấu an toàn","nd":"Nút dừng khẩn cấp đầu nấm đỏ trên nền cover vàng, dừng khi ấn và gỡ khi xoay, gần người thao tác (< 1 m), không bị che khuất.","bp":"Thiết bị, EHS"},{"sid":"M10","no":10,"g":"B","muc":"Cơ cấu an toàn","nd":"Vùng nguy hiểm tiếp cận được (điện cao áp, hóa chất, nhiệt cao, kẹt tay: trục lăn, xích, quạt, piston) có cover/sensor/interlock phòng hộ.","bp":"Thiết bị, EHS"},{"sid":"M11","no":11,"g":"B","muc":"Cơ cấu an toàn","nd":"Cover/sensor/interlock lắp cố định, chỉ tháo bằng dụng cụ chuyên dụng; vùng nguy hiểm (robot, xích) có khóa liên động, chỉ chạy khi cover/cửa đóng kín.","bp":"Thiết bị, EHS"},{"sid":"M12","no":12,"g":"B","muc":"Tia có hại","nd":"Khu vực tia có hại (X, laser, hồng ngoại, UV) có cover phòng hộ phù hợp.","bp":"Thiết bị, EHS"},{"sid":"M13","no":13,"g":"B","muc":"Hướng dẫn, cảnh báo","nd":"Đèn 3 màu phân biệt rõ trạng thái thiết bị, không trùng màu khó phân biệt, lắp vị trí cao, nhìn thấy từ 4 phía.","bp":"Thiết bị, EHS"},{"sid":"M14","no":14,"g":"B","muc":"Hướng dẫn, cảnh báo","nd":"Khi có tín hiệu bất thường: chuông cảnh báo kêu, đèn 3 màu hoạt động; âm cảnh báo đạt 80 dB.","bp":"Thiết bị, EHS"},{"sid":"M15","no":15,"g":"B","muc":"Hướng dẫn, cảnh báo","nd":"Dán tem, nhãn cảnh báo tại khu vực nguy hiểm (nhiệt cao, kẹp, hóa chất, điện); tem nhãn, nút thao tác có tiếng Việt.","bp":"Thiết bị, EHS"},{"sid":"M16","no":16,"g":"B","muc":"Hướng dẫn, cảnh báo","nd":"Có SOP vận hành thiết bị, hướng dẫn ATMT, quy trình vệ sinh/bảo dưỡng, check list kiểm tra thiết bị hàng ngày.","bp":"Thiết bị"},{"sid":"M17","no":17,"g":"C","muc":"Nhãn, cảnh báo, MSDS","nd":"Khu vực lưu trữ/sử dụng hóa chất niêm yết MSDS đủ 16 nội dung, chuẩn GHS, có dấu xác nhận của Health P.","bp":"Sản xuất, EHS"},{"sid":"M18","no":18,"g":"C","muc":"Nhãn, cảnh báo, MSDS","nd":"Hóa chất có tem nhãn, cảnh báo, hình đồ đầy đủ (đúng kích thước, vị trí); biển cấm lửa; không rách, bẩn.","bp":"Sản xuất, EHS"},{"sid":"M19","no":19,"g":"C","muc":"PPE, PTBVCN","nd":"Nhân viên tiếp xúc hóa chất được trang bị đầy đủ PTBVCN theo tiêu chuẩn EHS.","bp":"Sản xuất, EHS"},{"sid":"M20","no":20,"g":"C","muc":"Môi trường làm việc với hóa chất","nd":"Khu san chiết/sử dụng có ống hút mùi cục bộ (TVOCs > 0,5 ppm), thông gió hoạt động; xe chở hóa chất, rack được tiếp địa.","bp":"EHS"},{"sid":"M21","no":21,"g":"C","muc":"Môi trường làm việc với hóa chất","nd":"Có biện pháp chống tràn đổ hóa chất khi san chiết và sử dụng.","bp":"Sản xuất, EHS"},{"sid":"M22","no":22,"g":"C","muc":"Môi trường làm việc với hóa chất","nd":"Có thùng thu gom rác thải nguy hại tại khu vực sử dụng hóa chất.","bp":"Sản xuất"},{"sid":"M23","no":23,"g":"C","muc":"Lưu trữ, bảo quản hóa chất","nd":"Chống rò rỉ tại khu lưu trữ: khay chống tràn dung tích ≥ 110% can lớn nhất, giấy thấm.","bp":"Sản xuất"},{"sid":"M24","no":24,"g":"C","muc":"Lưu trữ, bảo quản hóa chất","nd":"Đủ thiết bị ứng phó khẩn cấp (bình/họng PCCC, khu xử lý sự cố hóa chất, bình rửa mắt, phòng tắm khẩn cấp).","bp":"EHS"},{"sid":"M25","no":25,"g":"C","muc":"Lưu trữ, bảo quản hóa chất","nd":"Bảo quản đúng từng loại hóa chất (không để chung chất dễ cháy; tránh ánh sáng trực tiếp; dạng bột để nơi khô thoáng).","bp":"EHS"},{"sid":"M26","no":26,"g":"C","muc":"Lưu trữ, bảo quản hóa chất","nd":"Khu hóa chất sạch, xếp ≤ 2 tầng, đậy nắp, đặt trên pallet, quấn vinyl; không xếp lẫn loại hóa chất trên cùng 1 pallet.","bp":"Kho, EHS"},{"sid":"M27","no":27,"g":"C","muc":"Lưu trữ, bảo quản hóa chất","nd":"Rác thải hóa chất nguy hại phân loại riêng; vỏ bình sau khi dùng đưa ra kho rác nguy hại.","bp":"Sản xuất"},{"sid":"M28","no":28,"g":"C","muc":"Quản lý rác thải nguy hại","nd":"Có quy trình xử lý rác thải; phân biệt rác nguy hại để có phương pháp xử lý phù hợp.","bp":"EHS"},{"sid":"M29","no":29,"g":"D","muc":"Quản lý ổ cắm điện","nd":"Ổ cắm cố định đạt chuẩn (lỗ chìm/tròn, có tiếp địa, Idm > 15A), che ổ không dùng, nhiệt độ < 60°C, thay ổ có nguy cơ cháy nổ, chảy, vỡ.","bp":"Thiết bị, EHS"},{"sid":"M30","no":30,"g":"D","muc":"Dây điện, kết nối","nd":"Không nối dây dị hình, không vắt ngang lối đi; dây không gãy, gập, hở lõi; không có vật nặng đè.","bp":"Thiết bị, EHS"},{"sid":"M31","no":31,"g":"D","muc":"Dây điện, kết nối","nd":"Đường điện lộ thiên trên sàn có cover bảo vệ.","bp":"EHS"},{"sid":"M32","no":32,"g":"D","muc":"Thiết bị điện","nd":"Có cover an toàn ngăn tiếp xúc phần mang điện.","bp":"Thiết bị, EHS"},{"sid":"M33","no":33,"g":"D","muc":"Thiết bị điện","nd":"Có biển tên, sơ đồ mạch điện, quy định an toàn, biển cảnh báo.","bp":"EHS"},{"sid":"M34","no":34,"g":"D","muc":"Thiết bị điện","nd":"Vỏ, cánh cửa kim loại thiết bị/tủ điện nối dây tiếp địa; tủ điện ngoài xưởng bịt kín chống nước mưa, côn trùng.","bp":"EHS"},{"sid":"M35","no":35,"g":"D","muc":"Thiết bị điện","nd":"Bóp đầu cose và màu áo cose theo thứ tự từng pha đúng tiêu chuẩn.","bp":"EHS"},{"sid":"M36","no":36,"g":"D","muc":"Thiết bị điện","nd":"Phần hở của tủ điện bịt kín bằng vật liệu chịu nhiệt hoặc chống cháy.","bp":"EHS"},{"sid":"M37","no":37,"g":"D","muc":"PPE, PTBVCN","nd":"Nhân viên vận hành, sửa chữa thiết bị điện được trang bị đầy đủ PTBVCN.","bp":"EHS"},{"sid":"M38","no":38,"g":"E","muc":"Sơ cấp cứu","nd":"Xưởng có tủ thuốc sơ cấp cứu đủ vật tư, dễ tiếp cận, tình trạng tốt (1 tủ loại C / 150 nhân viên).","bp":"Y tế"},{"sid":"M39","no":39,"g":"E","muc":"Sơ cấp cứu","nd":"Có lực lượng sơ cứu, cấp cứu được đào tạo, có mặt sớm khi xảy ra sự cố (1 người / 100 nhân viên).","bp":"Y tế"},{"sid":"M40","no":40,"g":"E","muc":"PPE, PTBVCN","nd":"Cấp phát đúng chủng loại PTBVCN cho từng công đoạn.","bp":"Kho, EHS"},{"sid":"M41","no":41,"g":"E","muc":"PPE, PTBVCN","nd":"Nhân viên tuân thủ PPE theo công việc (mũ, giày khi lái xe nâng; khẩu trang khi hàn/sơn; găng tay khi dùng dao; đồ bảo hộ khi tiếp xúc hóa chất...).","bp":"Kho, EHS"},{"sid":"M42","no":42,"g":"E","muc":"An toàn chung","nd":"Kiểm tra an toàn thiết bị (cơ cấu, nút ấn...) trước khi vận hành.","bp":"Thiết bị"},{"sid":"M43","no":43,"g":"E","muc":"An toàn chung","nd":"Không xếp hàng quá cao, có phương án chống nghiêng đổ; hàng trên rack ≤ 1,6 m, cách trần ≥ 0,6 m.","bp":"Kho"},{"sid":"M44","no":44,"g":"E","muc":"An toàn chung","nd":"Rack, xe transfer an toàn (đúng thiết kế, không cong vênh, có cover bịt đầu sắc nhọn).","bp":"Kho"},{"sid":"M45","no":45,"g":"F","muc":"5S","nd":"Vị trí làm việc vệ sinh bụi, dọn rác thường xuyên; có dụng cụ vệ sinh line tình trạng tốt; có túi/khay/thùng rác trên line.","bp":"Sản xuất"},{"sid":"M46","no":46,"g":"F","muc":"5S","nd":"Mặt bàn, băng tải không vẽ bậy, cáu bẩn, dính keo; cover chống xước không bong rách; đủ vạch pitch time, thả set đúng vạch.","bp":"Sản xuất"},{"sid":"M47","no":47,"g":"F","muc":"5S","nd":"Quản lý vệ sinh line: line off tắt điện, khí, thu vật liệu/dụng cụ/jig về kho; line on có chổi 5S, túi/thùng rác, vị trí sạch sẽ.","bp":"Sản xuất"},{"sid":"M48","no":48,"g":"F","muc":"5S","nd":"Túi/box checksheet, WI, thẻ hướng dẫn tình trạng tốt, treo ngay ngắn, đồng bộ; WI, tài liệu được cập nhật mới.","bp":"Sản xuất, QC"},{"sid":"M49","no":49,"g":"F","muc":"5S","nd":"Thiết bị trong ngoài (khoang máy, gầm, cover, nóc máy) vệ sinh thường xuyên; không rò rỉ dầu/nước; filter lọc bụi vệ sinh đúng chu kỳ.","bp":"Thiết bị"},{"sid":"M50","no":50,"g":"F","muc":"5S","nd":"Băng tải, sensor hoạt động tốt, không dồn hàng; hộp điều khiển, cơ cấu truyền động cố định có cover; không rơi mạt bụi.","bp":"Thiết bị, EHS"},{"sid":"M51","no":51,"g":"F","muc":"Đúng vị trí","nd":"Tiêu chuẩn hóa hiện trường đồng bộ: layout, bảng biển, tem nhãn, vị trí thùng rác/ghế/tool, thiết bị thẳng hàng.","bp":"EHS"},{"sid":"M52","no":52,"g":"F","muc":"Đúng vị trí","nd":"Layout vật tư/thiết bị/hàng hóa dán tape hoặc tem góc (lối đi tape xanh lá 10 cm; rack tape xanh dương 5 cm); không bong rách.","bp":"Tất cả bộ phận"},{"sid":"M53","no":53,"g":"F","muc":"Đúng vị trí","nd":"Vật liệu trên bàn thao tác để đúng khu vực; không chồng tray/box quá 40 cm hoặc chênh vênh; không để vật dụng khác đè lên vật liệu.","bp":"Sản xuất, QC"},{"sid":"M54","no":54,"g":"F","muc":"Đúng vị trí","nd":"Không để vật liệu trực tiếp xuống nền xưởng; tray/box để trên giá/bàn đúng chiều, sạch, không nứt vỡ.","bp":"Sản xuất"},{"sid":"M55","no":55,"g":"F","muc":"Đúng vị trí","nd":"Có vị trí hàng NG riêng (label góc đỏ trên bàn, tape đỏ 5 cm dưới sàn); hàng NG để đúng chỗ, không lẫn OK/NG.","bp":"Sản xuất, QC"},{"sid":"M56","no":56,"g":"F","muc":"Đúng vị trí","nd":"Dụng cụ để đúng vị trí, khu thao tác gọn gàng; không để vật tư thừa, jig không dùng, dụng cụ sửa chữa EQM bừa bãi trên bàn, gầm bàn/máy.","bp":"Thiết bị"},{"sid":"M57","no":57,"g":"F","muc":"Đúng vị trí","nd":"Dây điện, mạng, khí gọn gàng (vào máng/ruột gà); không lỏng giắc cắm, hở lõi; máng điện sạch, đủ nắp.","bp":"Thiết bị"},{"sid":"M58","no":58,"g":"F","muc":"Tĩnh điện","nd":"Quạt ion, súng ion setup đúng ESD/EOS (quạt 10~60 cm, đầu ion gun bọc sponge); tay cầm bắt vít cố định sau khi dùng.","bp":"Thiết bị"},{"sid":"M59","no":59,"g":"F","muc":"Tĩnh điện","nd":"Quạt ion, súng ion, wrist strap, đồng hồ đo cố định, tình trạng tốt; đèn báo sáng rõ; đồng hồ không mất nắp, gãy kim.","bp":"Thiết bị"},{"sid":"M60","no":60,"g":"F","muc":"Tĩnh điện","nd":"Nhân viên tuân thủ ESD/EOS (búi tóc, đeo wrist strap đúng, không dẫm lên) và chống xước (găng/bao ngón, không trang sức).","bp":"QC"},{"sid":"M61","no":61,"g":"F","muc":"Tem nhãn / Biển bảng cảnh báo","nd":"Tem nhãn, biển cảnh báo/chỉ báo, hướng dẫn vận hành, spec dán đủ trên thiết bị, rõ nét, có tiếng Việt.","bp":"EHS, Thiết bị"},{"sid":"M62","no":62,"g":"F","muc":"Tem nhãn / Biển bảng cảnh báo","nd":"Niêm yết nhân viên EQM phụ trách (thẻ My Machine); checksheet thiết bị, cảm áp check đủ, đúng chu kỳ, không rách/vẽ bậy.","bp":"Thiết bị"},{"sid":"M63","no":63,"g":"F","muc":"Chung","nd":"Nhân viên tuân thủ nội quy: đồng phục, búi tóc, đi tất, không mang đồ ăn/đồ cá nhân vào khu làm việc, nghỉ đúng khu vực.","bp":"EHS, An ninh"},{"sid":"M64","no":64,"g":"F","muc":"Chung","nd":"Loại bỏ triệt để logo cũ, văn hóa tổ chức cũ trên máy móc, thùng box, tem nhãn, bảng tin, băng rôn.","bp":"Thiết bị"},{"sid":"M65","no":65,"g":"F","muc":"Chung","nd":"Môi trường xưởng tốt: cửa, hành lang gọn; sàn nhà vệ sinh sạch; tường, sơn cửa không bong; ồn ≤ 85 dB; điều hòa, quạt, đèn, ghế tốt.","bp":"EHS"},{"sid":"M66","no":66,"g":"G","muc":"5S","nd":"Quản lý chống bụi cho hàng/thiết bị/jig trong kho (rèm che, nắp đậy thùng, quấn vinyl).","bp":"Kho, Thiết bị"},{"sid":"M67","no":67,"g":"G","muc":"5S","nd":"Hàng/jig/thiết bị không xếp chồng đè lộn xộn; thùng hàng, jig, tray box để trên pallet, không để trực tiếp xuống sàn.","bp":"Kho, Thiết bị"},{"sid":"M68","no":68,"g":"G","muc":"5S","nd":"Máy móc không sử dụng/chờ setup quản lý ở khu riêng có biển báo, quấn vinyl chống bụi, không xuống cấp.","bp":"Thiết bị"},{"sid":"M69","no":69,"g":"G","muc":"5S","nd":"5S3D kho và dock: sàng lọc, sắp xếp, vệ sinh trong thùng, mặt và gầm rack; không chất đồ lên nóc/gầm rack; úp thùng rỗng.","bp":"Thiết bị"},{"sid":"M70","no":70,"g":"G","muc":"5S","nd":"Layout kho dán tape/tem góc phân định rack, pallet, lối đi (xanh lá 10 cm, xanh dương 5 cm); không bong rách.","bp":"Kho"},{"sid":"M71","no":71,"g":"G","muc":"5S","nd":"Quản lý vị trí hàng theo tên Bin/rack location; biển rack, label bin tình trạng tốt, đồng bộ quy cách.","bp":"Kho"},{"sid":"M72","no":72,"g":"G","muc":"Đúng vị trí","nd":"Niêm yết list hàng đầu mỗi rack (tên - code - spec - vị trí) hoặc có máy tính/tablet tra cứu; thông tin đúng thực tế.","bp":"Kho, Thiết bị"},{"sid":"M73","no":73,"g":"G","muc":"Đúng vị trí","nd":"Thẻ tên hàng ngoài thùng đủ thông tin (tên - code - spec - số lượng cập nhật sau GI/GR - hình ảnh), tình trạng tốt.","bp":"Kho"},{"sid":"M74","no":74,"g":"G","muc":"Đúng vị trí","nd":"Hàng NG, hàng chờ hủy bảo quản riêng, phân biệt bằng layout riêng (tape đỏ 5 cm bao kín rack/pallet).","bp":"Kho"},{"sid":"M75","no":75,"g":"G","muc":"Đúng vị trí","nd":"Quản lý 3D (đúng chủng loại - số lượng - vị trí) và FIFO; đối chiếu hàng thực tế với thẻ và hệ thống.","bp":"Kho"},{"sid":"M76","no":76,"g":"G","muc":"Đúng vị trí","nd":"Line/kho/văn phòng có biển tên khu vực; có thẻ My Area (ảnh, họ tên, bộ phận, SĐT người quản lý).","bp":"Kho"},{"sid":"M77","no":77,"g":"G","muc":"Chung","nd":"Phòng nghỉ, locker, căng tin: phòng nghỉ gần sản xuất có ghế sạch thoáng; locker sạch, không xuống cấp, an ninh đảm bảo.","bp":"EHS, HR"},{"sid":"M78","no":78,"g":"G","muc":"Chung","nd":"Nhà vệ sinh, cây nước (có check list chất lượng nước), phòng y tế, nhà ăn: sạch, không quá tải, đảm bảo ATVSTP.","bp":"EHS, HR"},{"sid":"M79","no":79,"g":"G","muc":"Chung","nd":"Môi trường ngoài xưởng: thoát nước, chiếu sáng, họng cứu hỏa, nơi tập kết chất thải không hư hỏng; không để rác, vật liệu phơi mưa nắng.","bp":"EHS, HR"},{"sid":"M80","no":80,"g":"G","muc":"Chung","nd":"Bảng tin, băng rôn, poster không xuống cấp, treo ngay ngắn, cập nhật nội dung; không dùng tiếng Hàn.","bp":"EHS, HR"}],"FAILS":[{"sid":"F01","id":1,"g":"G","ma":72,"muc":"Đúng vị trí","vt":"Kho Jig/MRO","nd":"Hàng hóa để trên nóc rack; keo không có thông tin tiếng Việt; rack để Jig không có thông tin hàng hóa, số lượng quản lý.","bp":"Thiết bị","type":"all"},{"sid":"F02","id":2,"g":"D","ma":36,"muc":"Thiết bị điện","vt":"Tủ điện cột C14 (2 tủ)","nd":"Sử dụng áo cos bằng băng dính.","bp":"HR-EHS","type":"re"},{"sid":"F03","id":3,"g":"F","ma":55,"muc":"Đúng vị trí","vt":"Line Block 13","nd":"Vị trí để khay hàng OK, NG không có label hiển thị; hàng NG để ở khu vực layout không đúng layout.","bp":"Sản xuất","type":"all"},{"sid":"F04","id":4,"g":"G","ma":70,"muc":"Đúng vị trí","vt":"Khu vực kho thành phẩm","nd":"Để thiết bị jig không có layout, thông tin quản lý.","bp":"Thiết bị","type":"all"},{"sid":"F05","id":5,"g":"G","ma":70,"muc":"Đúng vị trí","vt":"Khu vực kho thiết bị dự phòng","nd":"Không có danh mục hàng hóa, số lượng, thông tin quản lý.","bp":"Thiết bị","type":"all"},{"sid":"F06","id":6,"g":"C","ma":18,"muc":"Nhãn, cảnh báo, MSDS","vt":"Khu vực setup","nd":"Mỡ không có thông tin cảnh báo hóa chất, tem nhãn.","bp":"Thiết bị","type":"re"},{"sid":"F07","id":7,"g":"G","ma":70,"muc":"Đúng vị trí","vt":"Kho vật liệu","nd":"Layout đỏ không có thông tin rõ ràng.","bp":"Kho - Khu vực RMA","type":"all"},{"sid":"F08","id":8,"g":"E","ma":42,"muc":"An toàn chung","vt":"Khu vực Xray","nd":"Máy Xray hỏng nút alarm lamp.","bp":"HR-EHS","type":"re"},{"sid":"F09","id":9,"g":"G","ma":74,"muc":"Đúng vị trí","vt":"QC WIP","nd":"Rack để vật liệu NG không dán layout đỏ.","bp":"QC","type":"all"},{"sid":"F10","id":10,"g":"G","ma":74,"muc":"Đúng vị trí","vt":"QC REWORK","nd":"Không phân biệt layout để hàng OK, NG.","bp":"QC","type":"all"},{"sid":"F11","id":11,"g":"A","ma":4,"muc":"Đèn chỉ dẫn thoát nạn, exit nền","vt":"Phòng kỹ thuật điện số 2","nd":"Không có biển exit và đèn chiếu sáng khẩn cấp.","bp":"HR-EHS","type":"re"},{"sid":"F12","id":12,"g":"B","ma":14,"muc":"Hướng dẫn, cảnh báo","vt":"Line Block 03","nd":"Nhân viên thiết bị mở cửa máy nhưng đèn báo vẫn xanh.","bp":"Automation","type":"re"}]};
+const GROUPS=DATA.GROUPS, ITEMS=DATA.ITEMS, FAILS=DATA.FAILS;
+const PARTS=["PRO","QC","MM","EQM","HR","INNO"];
+const LINE_OPTS={"Line sản xuất":Array.from({length:17},(_,i)=>["Line "+(i+1)+"A","Line "+(i+1)+"B"]).flat(),
+ "Khu vực OQC":Array.from({length:17},(_,i)=>"Khu vực OQC Line "+(i+1)),
+ "Kho & khu vực khác":["Khu vực kho shipment","Khu vực kho vật liệu","Khu vực IQC","Khu vực rework","Khu vực WIP","Khu vực kho jig","Khu vực văn phòng chính","Khu vực văn phòng kho","Khu vực kho rác","Khu vực kho thiết bị","Khu vực cửa từ","Khu vực locker","Phòng họp hiện trường","Khu vực sảnh VIP","Hội trường Kinh Bắc","Khu vực 200%","Khu vực PM thiết bị","WC trên","WC dưới"]};
+const SUBJ=[];
+ITEMS.forEach(i=>SUBJ.push({sid:i.sid,kind:"M",label:"#"+i.no,g:i.g,title:i.muc,desc:i.nd,bp:i.bp,tab:"M"}));
+FAILS.forEach(f=>SUBJ.push({sid:f.sid,kind:"F",label:"L"+f.id,g:f.g,title:f.vt+" — "+f.muc+" (mã "+f.ma+")",desc:f.nd,bp:f.bp,tab:"F",typ:f.type}));
+const BY={};SUBJ.forEach(s=>BY[s.sid]=s);
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const GUEST=new URLSearchParams(location.search).get("mode")==="report";
+let sb=null, SES=null, S={me:null,round:1,req_photo:true,ehs:[],na:[],locs:[],events:[]};
+let TAB=GUEST?"report":"M", FILT={q:"",f:"all",g:""}, SCOPE="all", PH={};
+
+function toast(m,e){const t=$("toast");t.innerHTML='<div class="toast'+(e?" e":"")+'">'+esc(m)+'</div>';clearTimeout(toast._t);toast._t=setTimeout(()=>t.innerHTML="",e?4500:2200);}
+async function rpc(fn,args){const r=await sb.rpc(fn,args||{});if(r.error)throw new Error(r.error.message||String(r.error));return r.data;}
+async function call(fn,args,okMsg){try{const r=await rpc(fn,Object.assign({p_token:SES&&SES.token},args));await reload();if(okMsg)toast(okMsg);return r===undefined?true:(r===null?true:r);}catch(e){toast(e.message,true);return false;}}
+
+/* ---------- đăng nhập ---------- */
+function loadSes(){for(const k of["vt001_ses","pro001_ses"]){try{const s=JSON.parse(localStorage.getItem(k)||"null");if(s&&s.token)return s;}catch(e){}}return null;}
+async function boot(){
+  sb=supabase.createClient(SUPA_URL,SUPA_ANON,{auth:{persistSession:false,autoRefreshToken:false}});
+  if(GUEST){await reload();show();return;}
+  const s=loadSes();
+  if(s){SES=s;try{await reload();if(S.me){show();return;}}catch(e){}SES=null;try{localStorage.removeItem("vt001_ses");}catch(e){}}
+  $("login").classList.remove("hidden");
+  try{const names=await rpc("list_user_names",{});(names||[]).forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;$("lgName").appendChild(o);});}
+  catch(e){showErr("Không tải được danh sách tài khoản.");}
+}
+function showErr(m){const e=$("lgErr");e.textContent=m;e.classList.remove("hidden");}
+async function doLogin(){
+  const name=$("lgName").value,pin=$("lgPin").value;
+  if(!name||!pin)return showErr("Chọn tên và nhập mật khẩu.");
+  const b=$("lgBtn");b.disabled=true;b.textContent="Đang đăng nhập…";$("lgErr").classList.add("hidden");
+  try{const r=await rpc("login",{p_name:name,p_pin:pin});if(!r)return showErr("Sai tên hoặc PIN.");
+    SES={token:r.token,name:r.name,role:r.role,part:r.part||""};
+    try{localStorage.setItem("vt001_ses",JSON.stringify(SES));}catch(e){}
+    await reload();$("login").classList.add("hidden");show();
+  }catch(e){showErr("Lỗi: "+e.message);}finally{b.disabled=false;b.textContent="Đăng nhập";}
+}
+function logout(){if(GUEST){location.href=location.pathname;return;}try{rpc("logout",{p_token:SES.token}).catch(()=>{});}catch(e){}try{localStorage.removeItem("vt001_ses");}catch(e){}location.reload();}
+async function reload(){const d=await rpc("vt_state",{p_token:SES?SES.token:null});S=d;if(SES&&!S.me&&!GUEST)throw new Error("Phiên hết hạn");render();return d;}
+
+/* ---------- tiện ích dữ liệu ---------- */
+const isEHS=()=>!!(S.me&&S.me.ehs);
+const locsOf=sid=>S.locs.filter(l=>l.sid===sid);
+function stat(sid){const L=locsOf(sid);const o=L.filter(l=>l.status==="open").length,r=L.filter(l=>l.status==="reported").length,v=L.filter(l=>l.status==="verified").length;return{t:L.length,o,r,v,na:S.na.includes(sid)};}
+function stLabel(st){if(st.na)return'<span class="st na">Không có vị trí (N/A)</span>';if(!st.t)return'<span class="st none">Chưa rà soát</span>';if(st.v===st.t)return'<span class="st verified">Hoàn tất</span>';return'<span class="st open">Còn '+(st.o)+' chưa OK</span>'+(st.r?' <span class="st reported">'+st.r+' chờ duyệt</span>':"");}
+const STN={open:"Chưa OK",reported:"Đã báo OK · chờ EHS",verified:"EHS đã xác nhận"};
+function guessPart(bp){const m={"Sản xuất":"PRO","QC":"QC","Thiết bị":"EQM","Automation":"EQM","Kho":"MM","Kho - Khu vực RMA":"MM","EHS":"HR","HR":"HR","Y tế":"HR","An ninh":"HR","HR-EHS":"HR"};const a=String(bp).split(",").map(x=>m[x.trim()]).filter(Boolean);return a.find(x=>x!=="HR")||a[0]||"";}
+const fdt=t=>{if(!t)return"";const d=new Date(t);return d.toLocaleDateString("vi-VN")+" "+d.toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"});};
+const pc=(a,b)=>b?Math.round(a*1000/b)/10:0;
+function canReport(l){if(!S.me||l.status!=="open")return false;if(isEHS())return true;return S.round>1&&l.owner_part&&S.me.part===l.owner_part;}
+
+/* ---------- vỏ ứng dụng ---------- */
+function show(){$("app").classList.remove("hidden");$("btnOut").textContent=GUEST?"Đăng nhập":"Đăng xuất";$("btnOut").onclick=logout;render();}
+function render(){
+  if(!$("app")||$("app").classList.contains("hidden"))return;
+  $("who").textContent=S.me?(S.me.name+" · "+(S.me.part||"—")+(S.me.ehs?" · PIC EHS":"")):"Khách · chỉ xem báo cáo";
+  $("rchip").textContent="Lượt "+S.round;
+  const pend=S.locs.filter(l=>l.status==="reported").length;
+  const tabs=GUEST?[["report","📊 Báo cáo"]]:[["M","📋 80 mục"],["F","🔁 12 lỗi cũ"]].concat(isEHS()?[["P","✅ Chờ duyệt"+(pend?'<span class="badge">'+pend+"</span>":"")]]:[]).concat([["report","📊 Báo cáo"]]).concat(isEHS()?[["set","⚙️ Cài đặt"]]:[]);
+  if(!tabs.some(t=>t[0]===TAB))TAB=tabs[0][0];
+  $("nav").innerHTML=tabs.map(t=>'<button class="'+(t[0]===TAB?"on":"")+'" data-tab="'+t[0]+'">'+t[1]+"</button>").join("");
+  $("nav").querySelectorAll("button").forEach(b=>b.onclick=()=>{TAB=b.dataset.tab;render();window.scrollTo(0,0);});
+  const m=$("main");
+  if(TAB==="M"||TAB==="F")m.innerHTML=renderList(TAB);
+  else if(TAB==="P")m.innerHTML=renderPending();
+  else if(TAB==="report")m.innerHTML=renderReport();
+  else if(TAB==="set")m.innerHTML=renderSettings();
+  bindMain();
+  if(CUR&&$("modal").innerHTML)openSubject(CUR,true);
+}
+
+function roundBanner(){
+  if(S.round===1)return'<div class="banner blue"><b>Lượt 1 — PIC EHS rà soát.</b> PIC EHS đi một lượt, ghi nhận toàn bộ vị trí tồn tại vấn đề của từng mục (đây là mẫu số). Bộ phận chưa báo OK ở lượt này.</div>';
+  return'<div class="banner blue"><b>Lượt '+S.round+'.</b> PIC bộ phận làm cho OK rồi mới báo'+(S.req_photo?" (kèm ảnh chụp sau khi sửa)":"")+'. PIC EHS xác nhận lại tại hiện trường.</div>';
+}
+function renderList(kind){
+  const list=SUBJ.filter(s=>s.tab===kind);
+  const q=FILT.q.toLowerCase();
+  const rows=list.filter(s=>{
+    if(FILT.g&&s.g!==FILT.g)return false;
+    if(q&&!(s.title+" "+s.desc+" "+s.label+" "+s.bp).toLowerCase().includes(q))return false;
+    const st=stat(s.sid);
+    if(FILT.f==="mine")return locsOf(s.sid).some(l=>S.me&&l.owner_part&&l.owner_part===S.me.part&&l.status==="open");
+    if(FILT.f==="new")return !st.t&&!st.na;
+    if(FILT.f==="open")return st.o>0||st.r>0;
+    if(FILT.f==="done")return st.na||(st.t&&st.v===st.t);
+    return true;});
+  let h=roundBanner();
+  h+='<div class="bar"><input class="inp" id="fq" placeholder="Tìm mục, nội dung…" value="'+esc(FILT.q)+'"><select class="inp" id="ff" style="max-width:190px">'+[["all","Tất cả"],["mine","Còn tồn của Part tôi"],["new","Chưa rà soát"],["open","Còn tồn / chờ duyệt"],["done","Hoàn tất / N/A"]].map(o=>'<option value="'+o[0]+'"'+(FILT.f===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+"</select></div>";
+  h+='<div class="chips"><button class="chip'+(!FILT.g?" on":"")+'" data-g="">Tất cả nhóm</button>'+Object.keys(GROUPS).map(g=>'<button class="chip'+(FILT.g===g?" on":"")+'" data-g="'+g+'">'+g+" · "+GROUPS[g].n+"</button>").join("")+"</div>";
+  const tot=list.reduce((a,s)=>{const t=stat(s.sid);a.t+=t.t;a.v+=t.v;a.r+=t.r;return a;},{t:0,v:0,r:0});
+  h+='<div class="meta" style="margin-bottom:8px">'+rows.length+"/"+list.length+" mục · "+tot.t+" vị trí · "+tot.v+" đã xác nhận OK · "+tot.r+" chờ duyệt</div>";
+  h+=rows.map(s=>{const st=stat(s.sid);
+    const bar=st.t?'<div class="prog"><i class="pv" style="width:'+pc(st.v,st.t)+'%"></i><i class="pr" style="width:'+pc(st.r,st.t)+'%"></i><i class="po" style="width:'+pc(st.o,st.t)+'%"></i></div>':"";
+    return'<div class="subj" data-sid="'+s.sid+'"><div class="h"><span class="no">'+s.label+'</span><span class="gb">'+s.g+" · "+GROUPS[s.g].n+'</span><span class="muc">'+esc(s.title)+'</span></div><div class="nd">'+esc(s.desc)+"</div>"+bar+'<div class="meta">'+stLabel(st)+(st.t?"<span>"+st.v+"/"+st.t+" OK</span>":"")+"<span>BP: "+esc(s.bp)+"</span></div></div>";}).join("")||'<div class="meta">Không có mục phù hợp.</div>';
+  return h;
+}
+function renderPending(){
+  const L=S.locs.filter(l=>l.status==="reported");
+  if(!L.length)return'<div class="banner blue">Không có vị trí nào đang chờ duyệt.</div>';
+  return'<div class="meta" style="margin-bottom:8px">'+L.length+" vị trí chờ PIC EHS xác nhận</div>"+L.map(l=>locCard(l,true)).join("");
+}
+function locCard(l,withSubj){
+  const s=BY[l.sid];let h='<div class="loc" data-loc="'+l.id+'">';
+  if(withSubj)h+='<div class="meta"><span class="no">'+s.label+"</span><b>"+esc(s.title)+"</b></div>";
+  h+='<div class="row"><span class="z">📍 '+esc(l.zone)+"</span>"+(l.owner_part?'<span class="pt">'+esc(l.owner_part)+"</span>":'<span class="pt">chưa gán Part</span>')+'<span class="st '+l.status+'">'+STN[l.status]+"</span></div>";
+  if(l.detail)h+="<div>"+esc(l.detail)+"</div>";
+  h+='<div class="note">Rà soát lượt '+l.created_round+" · "+esc(l.created_by||"")+" · "+fdt(l.created_at)+"</div>";
+  if(l.init_photo)h+='<div><img src="'+esc(l.init_photo)+'" data-zoom="1" alt=""></div>';
+  if(l.reject_note&&l.status==="open")h+='<div class="note r">↩ Bị trả lại: '+esc(l.reject_note)+"</div>";
+  if(l.reported_by){h+='<div class="note">Báo OK lượt '+l.reported_round+" bởi "+esc(l.reported_by)+(l.reported_part?" ("+esc(l.reported_part)+")":"")+" · "+fdt(l.reported_at)+(l.report_note?" · "+esc(l.report_note):"")+"</div>";if(l.report_photo)h+='<div><img src="'+esc(l.report_photo)+'" data-zoom="1" alt=""></div>';}
+  if(l.verified_by)h+='<div class="note">✔ EHS xác nhận: '+esc(l.verified_by)+" · "+fdt(l.verified_at)+"</div>";
+  let a="";
+  if(canReport(l))a+='<button class="btn ok sm" data-act="report" data-id="'+l.id+'">'+(isEHS()?"✓ Đã OK":"✓ Báo đã OK")+"</button>";
+  if(isEHS()&&l.status==="reported")a+='<button class="btn ok sm" data-act="vok" data-id="'+l.id+'">✔ Duyệt</button><button class="btn bad sm" data-act="vno" data-id="'+l.id+'">✖ Từ chối</button>';
+  if(isEHS()&&l.status!=="open")a+='<button class="btn ghost sm" data-act="reopen" data-id="'+l.id+'">↩ Mở lại</button>';
+  if(isEHS()){a+='<button class="btn ghost sm" data-act="edit" data-id="'+l.id+'">✎ Sửa</button><button class="btn ghost sm" data-act="del" data-id="'+l.id+'">🗑</button>';}
+  if(a)h+='<div class="acts">'+a+"</div>";
+  return h+"</div>";
+}
+
+/* ---------- báo cáo ---------- */
+function calc(scope){
+  const subs=SUBJ.filter(s=>scope==="all"||(scope==="M"&&s.kind==="M")||(scope==="F"&&s.kind==="F"));
+  const set=new Set(subs.map(s=>s.sid));
+  const L=S.locs.filter(l=>set.has(l.sid));
+  const R={subs,L,t:L.length,o:0,r:0,v:0,surveyed:0,na:0,unsurveyed:[],byPart:{},byGroup:{},bySubj:[],rounds:{}};
+  L.forEach(l=>{R[{open:"o",reported:"r",verified:"v"}[l.status]]++;});
+  const bump=(m,k,l)=>{const x=m[k]||(m[k]={t:0,o:0,r:0,v:0});x.t++;x[{open:"o",reported:"r",verified:"v"}[l.status]]++;};
+  L.forEach(l=>{bump(R.byPart,l.owner_part||"(chưa gán)",l);bump(R.byGroup,BY[l.sid].g,l);});
+  subs.forEach(s=>{const st=stat(s.sid);if(st.na)R.na++;else if(st.t)R.surveyed++;else R.unsurveyed.push(s);R.bySubj.push({s,st});});
+  S.events.filter(e=>set.has(e.sid)).forEach(e=>{const x=R.rounds[e.round]||(R.rounds[e.round]={create:0,report_ok:0,verify:0,reject:0,reopen:0});if(x[e.action]!=null)x[e.action]++;});
+  return R;
+}
+function renderReport(){
+  const R=calc(SCOPE);
+  let h=roundBanner();
+  h+='<div class="bar"><select class="inp" id="scope" style="max-width:260px">'+[["all","Phạm vi: 80 mục + 12 lỗi cũ"],["M","Chỉ 80 mục check list"],["F","Chỉ 12 lỗi lần trước"]].map(o=>'<option value="'+o[0]+'"'+(SCOPE===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+'</select><button class="btn ghost sm" id="btnXls">⬇ Xuất Excel</button></div>';
+  h+='<div class="kpis"><div class="kpi"><b>'+R.t+'</b><span>Vị trí tồn tại vấn đề (mẫu số)</span></div><div class="kpi"><b style="color:#1D4ED8">'+(R.r+R.v)+'</b><span>Đã báo OK · '+pc(R.r+R.v,R.t)+'%</span></div><div class="kpi"><b style="color:var(--pass)">'+R.v+'</b><span>EHS đã xác nhận · '+pc(R.v,R.t)+'%</span></div><div class="kpi"><b style="color:var(--fail)">'+R.o+'</b><span>Còn chưa OK</span></div><div class="kpi"><b>'+(R.surveyed+R.na)+"/"+R.subs.length+'</b><span>Mục đã rà soát (gồm '+R.na+' N/A)</span></div></div>';
+  const tr=(name,x)=>'<tr><td>'+esc(name)+'</td><td class="n">'+x.t+'</td><td class="n">'+(x.r+x.v)+'</td><td class="n">'+x.v+'</td><td class="n">'+x.o+'</td><td class="n">'+pc(x.r+x.v,x.t)+'%</td><td class="n">'+pc(x.v,x.t)+"%</td></tr>";
+  const head='<tr><th>{0}</th><th class="n">Vị trí</th><th class="n">Báo OK</th><th class="n">Xác nhận</th><th class="n">Còn tồn</th><th class="n">% báo</th><th class="n">% xác nhận</th></tr>';
+  h+='<h3 class="sec">Theo Part phụ trách</h3><table>'+head.replace("{0}","Part")+Object.keys(R.byPart).sort().map(k=>tr(k,R.byPart[k])).join("")+"</table>";
+  h+='<h3 class="sec">Theo nhóm</h3><table>'+head.replace("{0}","Nhóm")+Object.keys(R.byGroup).sort().map(k=>tr(k+" · "+GROUPS[k].n,R.byGroup[k])).join("")+"</table>";
+  const rk=Object.keys(R.rounds).sort((a,b)=>a-b);
+  h+='<h3 class="sec">Theo lượt</h3><table><tr><th>Lượt</th><th class="n">Rà soát thêm vị trí</th><th class="n">Báo OK</th><th class="n">EHS xác nhận</th><th class="n">Từ chối</th></tr>'+(rk.map(k=>'<tr><td>Lượt '+k+'</td><td class="n">'+R.rounds[k].create+'</td><td class="n">'+R.rounds[k].report_ok+'</td><td class="n">'+R.rounds[k].verify+'</td><td class="n">'+R.rounds[k].reject+"</td></tr>").join("")||'<tr><td colspan="5">Chưa có dữ liệu</td></tr>')+"</table>";
+  const top=R.bySubj.filter(x=>x.st.o+x.st.r>0).sort((a,b)=>(b.st.o+b.st.r)-(a.st.o+a.st.r)).slice(0,15);
+  h+='<h3 class="sec">Mục còn tồn nhiều nhất</h3><table><tr><th>Mục</th><th class="n">Còn tồn</th><th class="n">Tổng</th></tr>'+(top.map(x=>"<tr><td>"+x.s.label+" "+esc(x.s.title)+'</td><td class="n">'+(x.st.o+x.st.r)+'</td><td class="n">'+x.st.t+"</td></tr>").join("")||'<tr><td colspan="3">Không còn</td></tr>')+"</table>";
+  h+='<h3 class="sec">Mục chưa rà soát ('+R.unsurveyed.length+")</h3>"+(R.unsurveyed.length?'<div class="note">'+R.unsurveyed.map(s=>s.label).join(", ")+"</div>":'<div class="note">Đã rà soát hết.</div>');
+  return h;
+}
+function exportXls(){
+  const R=calc(SCOPE);const wb=XLSX.utils.book_new();
+  const add=(n,a)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a),n);
+  add("Theo mục",[["Mã","Nhóm","Hạng mục","Nội dung","Bộ phận","Tổng vị trí","Báo OK","Xác nhận","Còn tồn","N/A"]].concat(R.bySubj.map(x=>[x.s.label,x.s.g,x.s.title,x.s.desc,x.s.bp,x.st.t,x.st.r+x.st.v,x.st.v,x.st.o,x.st.na?"N/A":""])));
+  add("Vị trí chi tiết",[["Mã","Hạng mục","Khu vực","Mô tả","Part","Trạng thái","Lượt rà soát","Người rà soát","Người báo OK","Lượt báo","Thời gian báo","EHS xác nhận","Lý do trả lại"]].concat(R.L.map(l=>[BY[l.sid].label,BY[l.sid].title,l.zone,l.detail,l.owner_part,STN[l.status],l.created_round,l.created_by,l.reported_by||"",l.reported_round||"",l.reported_at?fdt(l.reported_at):"",l.verified_by||"",l.reject_note||""])));
+  const pr=o=>Object.keys(o).sort().map(k=>[k,o[k].t,o[k].r+o[k].v,o[k].v,o[k].o,pc(o[k].r+o[k].v,o[k].t)/100,pc(o[k].v,o[k].t)/100]);
+  const ph=["","Vị trí","Báo OK","Xác nhận","Còn tồn","% báo","% xác nhận"];
+  add("Theo Part",[ph].concat(pr(R.byPart)));add("Theo nhóm",[ph].concat(pr(R.byGroup)));
+  XLSX.writeFile(wb,"VT001_BaoCao_Luot"+S.round+"_"+new Date().toISOString().slice(0,10)+".xlsx");
+}
+
+/* ---------- cài đặt ---------- */
+function renderSettings(){
+  const link=location.origin+location.pathname+"?mode=report";
+  return'<h3 class="sec" style="margin-top:0">Lượt hiện tại: '+S.round+'</h3><div class="row"><button class="btn sm" id="rNext">Chuyển sang lượt '+(S.round+1)+'</button>'+(S.round>1?'<button class="btn ghost sm" id="rPrev">Quay về lượt '+(S.round-1)+"</button>":"")+'</div><div class="note" style="margin:6px 0">Lượt 1: chỉ PIC EHS rà soát &amp; ghi nhận vị trí. Từ lượt 2: PIC bộ phận làm OK rồi báo.</div>'
+  +'<h3 class="sec">Ảnh khi báo OK</h3><label class="row"><input type="checkbox" id="reqPh" '+(S.req_photo?"checked":"")+'> Bắt buộc chụp ảnh khi PIC bộ phận báo OK</label>'
+  +'<h3 class="sec">PIC EHS (xác nhận &amp; rà soát)</h3><div class="note">Tài khoản role admin của web Audit luôn là EHS.</div><div id="ehsList">'+S.ehs.map(n=>'<div class="row" style="margin:4px 0"><span style="flex:1">'+esc(n)+'</span><button class="btn ghost sm" data-ehsdel="'+esc(n)+'">Gỡ</button></div>').join("")+'</div><div class="row"><select class="inp" id="ehsAdd" style="flex:1"><option value="">— Thêm PIC EHS —</option></select><button class="btn sm" id="ehsAddBtn">Thêm</button></div>'
+  +'<h3 class="sec">Link xem báo cáo (không cần đăng nhập)</h3><input class="inp" readonly value="'+esc(link)+'" onclick="this.select()">';
+}
+
+/* ---------- gắn sự kiện ---------- */
+let CUR=null;
+function bindMain(){
+  const m=$("main");
+  m.querySelectorAll(".subj").forEach(e=>e.onclick=()=>openSubject(e.dataset.sid));
+  const fq=$("fq");if(fq)fq.oninput=()=>{FILT.q=fq.value;const p=fq.selectionStart;render();const n=$("fq");n.focus();n.setSelectionRange(p,p);};
+  const ff=$("ff");if(ff)ff.onchange=()=>{FILT.f=ff.value;render();};
+  m.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{FILT.g=b.dataset.g;render();});
+  const sc=$("scope");if(sc)sc.onchange=()=>{SCOPE=sc.value;render();};
+  const bx=$("btnXls");if(bx)bx.onclick=exportXls;
+  bindActs(m);
+  if(TAB==="set")bindSettings();
+}
+function bindActs(root){
+  root.querySelectorAll("[data-act]").forEach(b=>b.onclick=e=>{e.stopPropagation();act(b.dataset.act,b.dataset.id);});
+  root.querySelectorAll("img[data-zoom]").forEach(i=>i.onclick=e=>{e.stopPropagation();window.open(i.src,"_blank");});
+}
+async function bindSettings(){
+  $("rNext").onclick=()=>{if(confirm("Chuyển sang lượt "+(S.round+1)+"? Từ lượt này PIC bộ phận được báo OK."))call("vt_set_setting",{p_key:"round",p_value:String(S.round+1)},"Đã chuyển lượt");};
+  const rp=$("rPrev");if(rp)rp.onclick=()=>{if(confirm("Quay về lượt "+(S.round-1)+"?"))call("vt_set_setting",{p_key:"round",p_value:String(S.round-1)},"Đã đổi lượt");};
+  $("reqPh").onchange=e=>call("vt_set_setting",{p_key:"req_photo",p_value:e.target.checked?"1":"0"},"Đã lưu");
+  document.querySelectorAll("[data-ehsdel]").forEach(b=>b.onclick=()=>{if(confirm("Gỡ "+b.dataset.ehsdel+" khỏi PIC EHS?"))call("vt_set_ehs",{p_name:b.dataset.ehsdel,p_on:false},"Đã gỡ");});
+  try{const names=await rpc("list_user_names",{});const s=$("ehsAdd");(names||[]).filter(n=>!S.ehs.includes(n)).forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;s.appendChild(o);});}catch(e){}
+  $("ehsAddBtn").onclick=()=>{const v=$("ehsAdd").value;if(v)call("vt_set_ehs",{p_name:v,p_on:true},"Đã thêm");};
+}
+
+/* ---------- modal ---------- */
+function openModal(html){$("modal").innerHTML='<div class="ovl"><div class="sheet">'+html+"</div></div>";$("modal").querySelector(".ovl").onclick=e=>{if(e.target.classList.contains("ovl"))closeModal();};const x=$("modal").querySelector(".x");if(x)x.onclick=closeModal;}
+function closeModal(){$("modal").innerHTML="";CUR=null;PH={};}
+function openSubject(sid,keepScroll){
+  CUR=sid;const s=BY[sid],st=stat(sid),L=locsOf(sid);
+  const sheet=$("modal").querySelector(".sheet");const sc=sheet?sheet.scrollTop:0;
+  let h='<button class="x">Đóng</button><h2><span class="no">'+s.label+"</span> "+esc(s.title)+'</h2><div class="meta"><span class="gb">'+s.g+" · "+GROUPS[s.g].n+"</span><span>BP: "+esc(s.bp)+"</span>"+stLabel(st)+"</div>";
+  h+='<p style="margin:8px 0;font-size:14px">'+esc(s.desc)+"</p>";
+  if(s.typ)h+='<div class="banner">'+(s.typ==="all"?"Lỗi về sắp xếp/bố trí: kiểm tra <b>toàn bộ line / khu vực</b>, ghi từng vị trí còn tồn tại.":"Kiểm tra lại vị trí cũ <b>và các vị trí có lỗi tương tự</b>.")+"</div>";
+  if(isEHS()){h+='<div class="row" style="margin:8px 0"><button class="btn sm" id="bAdd">＋ Thêm vị trí</button><button class="btn ghost sm" id="bCopy">⧉ Sao chép từ mục khác</button>'+(st.na?'<button class="btn ghost sm" id="bNaOff">Bỏ N/A</button>':(st.t?"":'<button class="btn ghost sm" id="bNa">Không có vị trí (N/A)</button>'))+"</div>";}
+  if(!L.length)h+='<div class="note" style="margin:10px 0">'+(st.na?"PIC EHS đã xác nhận mục này không có vị trí liên quan.":"Chưa có vị trí nào được ghi nhận.")+"</div>";
+  h+=L.map(l=>locCard(l,false)).join("");
+  openModal(h);
+  const md=$("modal");bindActs(md);
+  const q=id=>md.querySelector("#"+id);
+  if(q("bAdd"))q("bAdd").onclick=()=>addDialog(sid);
+  if(q("bCopy"))q("bCopy").onclick=()=>copyDialog(sid);
+  if(q("bNa"))q("bNa").onclick=()=>call("vt_set_na",{p_sid:sid,p_na:true},"Đã đánh dấu N/A");
+  if(q("bNaOff"))q("bNaOff").onclick=()=>call("vt_set_na",{p_sid:sid,p_na:false},"Đã bỏ N/A");
+  if(keepScroll){const n=md.querySelector(".sheet");if(n)n.scrollTop=sc;}
+}
+
+/* ảnh */
+function photoBox(id,label){return'<div class="prev"><label class="f">'+label+'<input type="file" accept="image/*" capture="environment" data-ph="'+id+'" class="inp"></label><div id="pv_'+id+'"></div></div>';}
+function compress(file){return new Promise((res,rej)=>{const r=new FileReader();r.onerror=rej;r.onload=()=>{const im=new Image();im.onerror=rej;im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height));const c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);c.toBlob(b=>b?res(b):rej(new Error("Không xử lý được ảnh")),"image/jpeg",0.72);};im.src=r.result;};r.readAsDataURL(file);});}
+function bindPhotos(root){root.querySelectorAll("input[data-ph]").forEach(i=>i.onchange=async()=>{const f=i.files[0];if(!f)return;try{const b=await compress(f);PH[i.dataset.ph]=b;const p=root.querySelector("#pv_"+i.dataset.ph);if(p)p.innerHTML='<img src="'+URL.createObjectURL(b)+'" alt="">';}catch(e){toast("Không đọc được ảnh",true);}});}
+async function upPhoto(id){const b=PH[id];if(!b)return null;const path="vt/"+Date.now()+"_"+Math.random().toString(36).slice(2,8)+".jpg";const r=await sb.storage.from("photos").upload(path,b,{contentType:"image/jpeg",upsert:false});if(r.error)throw new Error("Không tải được ảnh: "+r.error.message);return sb.storage.from("photos").getPublicUrl(path).data.publicUrl;}
+
+/* thao tác */
+function act(a,id){
+  const l=S.locs.find(x=>x.id===id);if(!l)return;
+  if(a==="report")reportDialog(l);
+  else if(a==="vok")call("vt_verify",{p_loc:id,p_ok:true,p_note:null},"Đã xác nhận OK");
+  else if(a==="vno")noteDialog("Từ chối báo OK","Lý do (bộ phận sẽ thấy)","vt_verify",{p_loc:id,p_ok:false},"Đã trả lại");
+  else if(a==="reopen")noteDialog("Mở lại vị trí","Lý do mở lại","vt_reopen",{p_loc:id},"Đã mở lại");
+  else if(a==="del"){if(confirm("Xóa vị trí '"+l.zone+"' khỏi mục này?"))call("vt_remove_location",{p_loc:id,p_note:null},"Đã xóa");}
+  else if(a==="edit")editDialog(l);
+}
+function sub(title,body,onOk,okLabel){
+  const back=CUR;const keep=$("modal").innerHTML;
+  const box=document.createElement("div");box.className="ovl";box.style.zIndex=60;
+  box.innerHTML='<div class="sheet"><button class="x">Hủy</button><h2>'+title+"</h2>"+body+'<div id="subErr" class="err hidden" style="margin-top:8px"></div><div class="row" style="margin-top:12px"><button class="btn" id="subOk">'+(okLabel||"Lưu")+"</button></div></div>";
+  document.body.appendChild(box);
+  const close=()=>box.remove();
+  box.querySelector(".x").onclick=close;
+  bindPhotos(box);
+  box.querySelector("#subOk").onclick=async()=>{const b=box.querySelector("#subOk");b.disabled=true;const old=b.textContent;b.textContent="Đang lưu…";try{const ok=await onOk(box);if(ok!==false)close();}catch(e){const er=box.querySelector("#subErr");er.textContent=e.message;er.classList.remove("hidden");}finally{b.disabled=false;b.textContent=old;}};
+  return box;
+}
+async function direct(fn,args,msg){const r=await rpc(fn,Object.assign({p_token:SES&&SES.token},args));await reload();if(msg)toast(msg);return r;}
+function reportDialog(l){
+  const need=S.req_photo&&!isEHS();
+  sub("Báo đã OK — "+esc(l.zone),'<div class="note" style="margin:6px 0">'+esc(BY[l.sid].title)+(l.detail?" · "+esc(l.detail):"")+"</div>"+photoBox("rp",need?"Ảnh sau khi đã làm OK (bắt buộc)":"Ảnh sau khi làm OK (nên có)")+'<label class="f" style="margin-top:8px">Ghi chú<textarea class="inp" id="rn" placeholder="Đã khắc phục như thế nào…"></textarea></label>',async box=>{
+    if(need&&!PH.rp)throw new Error("Cần chụp ảnh sau khi đã làm OK");
+    let url=null;if(PH.rp)url=await upPhoto("rp");
+    await direct("vt_report_ok",{p_loc:l.id,p_photo:url,p_note:box.querySelector("#rn").value.trim()||null},isEHS()?"Đã xác nhận OK":"Đã báo OK, chờ PIC EHS xác nhận");PH={};},"Xác nhận đã OK");
+}
+function noteDialog(title,label,fn,args,msg){
+  sub(title,'<label class="f">'+label+'<textarea class="inp" id="nt"></textarea></label>',async box=>{const v=box.querySelector("#nt").value.trim();if(!v)throw new Error("Cần nhập lý do");await direct(fn,Object.assign({},args,{p_note:v}),msg);},"Gửi");
+}
+function partSel(id,val){return'<select class="inp" id="'+id+'"><option value="">(chưa gán)</option>'+PARTS.map(p=>'<option'+(p===val?" selected":"")+">"+p+"</option>").join("")+"</select>";}
+function editDialog(l){
+  sub("Sửa vị trí",'<label class="f">Khu vực<input class="inp" id="ez" value="'+esc(l.zone)+'"></label><label class="f" style="margin-top:8px">Mô tả<textarea class="inp" id="ed">'+esc(l.detail)+'</textarea></label><label class="f" style="margin-top:8px">Part phụ trách'+partSel("eo",l.owner_part)+"</label>",async box=>{await direct("vt_edit_location",{p_loc:l.id,p_zone:box.querySelector("#ez").value,p_detail:box.querySelector("#ed").value,p_owner:box.querySelector("#eo").value},"Đã lưu");});
+}
+function addDialog(sid){
+  const s=BY[sid];let h='<div class="note">'+esc(s.title)+'</div><input class="inp" id="zq" placeholder="Tìm khu vực…" style="margin:8px 0">';
+  Object.keys(LINE_OPTS).forEach(g=>{h+='<div class="grp" data-zg="'+esc(g)+'">'+esc(g)+'</div><div class="zones" data-zg="'+esc(g)+'">'+LINE_OPTS[g].map(z=>'<label data-z="'+esc(z.toLowerCase())+'"><input type="checkbox" value="'+esc(z)+'"> '+esc(z)+"</label>").join("")+"</div>";});
+  h+='<label class="f" style="margin-top:10px">Khu vực khác (nhập tay, cách nhau bằng dấu ;)<input class="inp" id="zc" placeholder="VD: Tủ điện cột C14; Phòng kỹ thuật điện số 2"></label>'
+   +'<label class="f" style="margin-top:8px">Mô tả vấn đề (áp dụng cho các vị trí đã chọn)<textarea class="inp" id="zd"></textarea></label>'
+   +'<label class="f" style="margin-top:8px">Part phụ trách'+partSel("zo",guessPart(s.bp))+"</label>"
+   +'<div class="f" style="margin-top:8px">Tình trạng khi rà soát</div><div class="sw"><label class="on"><input type="radio" name="zs" value="open" checked>Chưa OK (có vấn đề)</label><label><input type="radio" name="zs" value="ok">Đã OK</label></div>'
+   +photoBox("ad","Ảnh hiện trạng (không bắt buộc, dùng cho 1 vị trí)");
+  const box=sub("Thêm vị trí",h,async bx=>{
+    const zones=[...bx.querySelectorAll(".zones input:checked")].map(i=>i.value).concat(bx.querySelector("#zc").value.split(";").map(x=>x.trim()).filter(Boolean));
+    if(!zones.length)throw new Error("Chọn ít nhất 1 khu vực");
+    let url=null;if(PH.ad&&zones.length===1)url=await upPhoto("ad");
+    const st=bx.querySelector("input[name=zs]:checked").value;
+    const items=zones.map(z=>({zone:z,detail:bx.querySelector("#zd").value.trim(),owner_part:bx.querySelector("#zo").value,status:st,photo:url||""}));
+    const n=await direct("vt_add_locations",{p_sid:sid,p_items:items});toast("Đã thêm "+n+" vị trí"+(n<items.length?" (bỏ qua "+(items.length-n)+" vị trí trùng)":""));PH={};},"Thêm");
+  box.querySelectorAll(".zones input").forEach(i=>i.onchange=()=>i.parentNode.classList.toggle("on",i.checked));
+  box.querySelectorAll(".sw input").forEach(i=>i.onchange=()=>box.querySelectorAll(".sw label").forEach(l=>l.classList.toggle("on",l.querySelector("input").checked)));
+  box.querySelector("#zq").oninput=e=>{const q=e.target.value.toLowerCase();box.querySelectorAll(".zones label").forEach(l=>l.style.display=l.dataset.z.includes(q)?"":"none");};
+}
+function copyDialog(sid){
+  const opts=SUBJ.filter(x=>x.sid!==sid&&stat(x.sid).t>0).map(x=>'<option value="'+x.sid+'">'+x.label+" · "+esc(x.title.slice(0,60))+" ("+stat(x.sid).t+" vị trí)</option>").join("");
+  if(!opts){toast("Chưa có mục nào có vị trí để sao chép",true);return;}
+  sub("Sao chép danh sách vị trí",'<div class="note">Các vị trí được sao chép với trạng thái <b>Chưa OK</b>.</div><label class="f" style="margin-top:8px">Từ mục<select class="inp" id="cf">'+opts+"</select></label>",async box=>{const n=await direct("vt_copy_locations",{p_from:box.querySelector("#cf").value,p_to:sid});toast("Đã sao chép "+n+" vị trí");},"Sao chép");
+}
+
+$("lgBtn").onclick=doLogin;
+$("lgPin").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
+boot();
+</script>
+</body>
+</html>
