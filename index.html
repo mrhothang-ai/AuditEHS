@@ -300,12 +300,12 @@ function dailyToday(id){const tt=todayStr();return (S.daily||[]).find(x=>x.loc_i
 function guessPart(bp){const m={"Sản xuất":"PRO","QC":"QC","Thiết bị":"EQM","Automation":"EQM","Kho":"MM","Kho - Khu vực RMA":"MM","EHS":"HR","HR":"HR","Y tế":"HR","An ninh":"HR","HR-EHS":"HR"};const a=String(bp||"").split(",").map(x=>m[x.trim()]).filter(Boolean);return a.find(x=>x!=="HR")||a[0]||"";}
 const fdt=t=>{if(!t)return"";const d=new Date(t);return d.toLocaleDateString("vi-VN")+" "+d.toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"});};
 const pc=(a,b)=>b?Math.round(a*1000/b)/10:0;
-function bucketItems(bk){return bk==="F"?SUBJ.filter(s=>s.tab==="F"):SUBJ.filter(s=>s.tab==="M"&&s.g===bk);}
+function bucketItems(bk){return bk==="FAIL"?SUBJ.filter(s=>s.tab==="F"):SUBJ.filter(s=>s.tab==="M"&&s.g===bk);}
 /* gộp các dòng (pin_id, hạng mục) thành ĐIỂM = địa điểm × nhóm */
 function allPins(){
   const m={};
   S.locs.forEach(l=>{const s=BY[l.sid];if(!s||!l.pin_id)return;
-    const p=m[l.pin_id]||(m[l.pin_id]={id:l.pin_id,zone:l.zone,owner_part:l.owner_part,kind:s.kind,g:s.kind==="F"?"F":s.g,items:[],photo:null,created_by:l.created_by,created_at:l.created_at});
+    const p=m[l.pin_id]||(m[l.pin_id]={id:l.pin_id,zone:l.zone,owner_part:l.owner_part,kind:s.kind,g:s.kind==="F"?"FAIL":s.g,items:[],photo:null,created_by:l.created_by,created_at:l.created_at});
     p.items.push(l);if(l.init_photo&&!p.photo)p.photo=l.init_photo;if(l.owner_part)p.owner_part=l.owner_part;});
   const a=Object.values(m);
   a.forEach(p=>{p.status=p.items.some(x=>x.status==="open")?"open":p.items.some(x=>x.status==="reported")?"reported":"verified";p.items.sort((x,y)=>(BY[x.sid].no||BY[x.sid].id||0)-(BY[y.sid].no||BY[y.sid].id||0));});
@@ -343,15 +343,15 @@ function render(){
 function roundBanner(){
   return'<div class="banner blue"><b>Quy trình:</b> EHS lập điểm = chọn địa điểm + nhóm, tích các hạng mục cần kiểm soát &amp; giao bộ phận → bộ phận khắc phục (ảnh) → EHS duyệt → duy trì OK/NG hằng ngày.</div>';
 }
-function curBucket(){return TAB==="F"?"F":(FILT.g&&FILT.g!=="F"?FILT.g:"A");}
+function curBucket(){return TAB==="F"?"FAIL":(FILT.g||"A");}
 function renderList(kind){
   let h=roundBanner();
   if(kind==="M"){
-    FILT.g=FILT.g&&FILT.g!=="F"?FILT.g:"A";
+    FILT.g=FILT.g||"A";
     h+='<div class="grp-sub">Chọn nhóm → "Thêm điểm kiểm soát": chọn địa điểm rồi tích các hạng mục của nhóm cần kiểm soát ở đó.</div>';
     h+='<div class="grp-pick">'+Object.keys(GROUPS).map(g=>{const its=bucketItems(g);const cov=new Set(S.locs.filter(l=>BY[l.sid]&&BY[l.sid].g===g&&BY[l.sid].kind==="M").map(l=>l.sid)).size;const done=cov>=its.length;return'<button class="gbtn'+(FILT.g===g?" on":"")+(done?" ok":"")+'" data-g="'+g+'"><b>'+g+'</b><span>'+GROUPS[g].n+'</span><em>'+cov+"/"+its.length+(done?" ✓":"")+"</em></button>";}).join("")+"</div>";
   }
-  const bk=kind==="F"?"F":FILT.g;
+  const bk=kind==="F"?"FAIL":FILT.g;
   const pins=allPins().filter(p=> kind==="F"?p.kind==="F":(p.kind==="M"&&p.g===bk));
   if(isEHS())h+='<button class="btn" id="addPin" style="width:100%;margin-bottom:10px;font-size:15px">➕ Thêm điểm kiểm soát ('+(kind==="F"?"12 lỗi cũ":"Nhóm "+bk)+")</button>";
   h+='<div class="bar"><input class="inp" id="fq" placeholder="Tìm địa điểm / hạng mục…" value="'+esc(FILT.q)+'"></div>';
@@ -391,7 +391,7 @@ function calc(scope){
   L.forEach(l=>{R.it[{open:"o",reported:"r",verified:"v"}[l.status]]++;});
   pins.forEach(p=>{R.pn[{open:"o",reported:"r",verified:"v"}[p.status]]++;});
   const bump=(m,k,p)=>{const x=m[k]||(m[k]={t:0,o:0,r:0,v:0,it:0});x.t++;x[{open:"o",reported:"r",verified:"v"}[p.status]]++;x.it+=p.items.length;};
-  pins.forEach(p=>{bump(R.byPart,p.owner_part||"(chưa gán)",p);bump(R.byGroup,p.kind==="F"?"F":p.g,p);});
+  pins.forEach(p=>{bump(R.byPart,p.owner_part||"(chưa gán)",p);bump(R.byGroup,p.kind==="F"?"FAIL":p.g,p);});
   subs.forEach(s=>{if(!S.locs.some(l=>l.sid===s.sid))R.missing.push(s);});
   return R;
 }
@@ -403,7 +403,7 @@ function renderReport(){
   const tr=(name,x)=>'<tr><td>'+esc(name)+'</td><td class="n">'+x.t+'</td><td class="n">'+x.it+'</td><td class="n">'+x.v+'</td><td class="n">'+x.r+'</td><td class="n">'+x.o+'</td><td class="n">'+pc(x.v,x.t)+"%</td></tr>";
   const head='<tr><th>{0}</th><th class="n">Điểm</th><th class="n">Hạng mục</th><th class="n">Duy trì</th><th class="n">Chờ duyệt</th><th class="n">Chờ KP</th><th class="n">% duy trì</th></tr>';
   h+='<h3 class="sec">Theo bộ phận</h3><table>'+head.replace("{0}","Bộ phận")+Object.keys(R.byPart).sort().map(k=>tr(k,R.byPart[k])).join("")+"</table>";
-  h+='<h3 class="sec">Theo nhóm</h3><table>'+head.replace("{0}","Nhóm")+Object.keys(R.byGroup).sort().map(k=>tr(k==="F"?"Lỗi cũ":k+" · "+GROUPS[k].n,R.byGroup[k])).join("")+"</table>";
+  h+='<h3 class="sec">Theo nhóm</h3><table>'+head.replace("{0}","Nhóm")+Object.keys(R.byGroup).sort().map(k=>tr(k==="FAIL"?"Lỗi cũ":k+" · "+GROUPS[k].n,R.byGroup[k])).join("")+"</table>";
   const top=R.pins.filter(p=>p.status!=="verified").sort((a,b)=>b.items.length-a.items.length).slice(0,15);
   h+='<h3 class="sec">Điểm còn tồn</h3><table><tr><th>Địa điểm</th><th>Nhóm</th><th class="n">Hạng mục</th><th>Trạng thái</th></tr>'+(top.map(p=>"<tr><td>"+esc(p.zone)+'</td><td>'+(p.kind==="F"?"Lỗi cũ":p.g)+'</td><td class="n">'+p.items.length+'</td><td>'+STN[p.status]+"</td></tr>").join("")||'<tr><td colspan="4">Không còn</td></tr>')+"</table>";
   h+='<h3 class="sec">Hạng mục chưa có điểm ('+R.missing.length+")</h3>"+(R.missing.length?'<div class="note">'+R.missing.map(s=>s.label).join(", ")+"</div>":'<div class="note">Đã phủ hết.</div>');
@@ -500,7 +500,7 @@ function addPinDialog(bucket){
    +'<label class="f" style="margin-top:8px">Giao bộ phận phụ trách'+partSel("zo","")+'</label>'
    +'<div class="f" style="margin-top:10px">Tích các hạng mục cần kiểm soát tại địa điểm này</div>'+chkList(items,null)
    +photoBox("ad","📷 Ảnh hiện trạng — BẮT BUỘC, chụp từ điện thoại");
-  const box=sub("➕ Thêm điểm — "+(bucket==="F"?"12 lỗi cũ":"Nhóm "+bucket+" · "+GROUPS[bucket].n),h,async bx=>{
+  const box=sub("➕ Thêm điểm — "+(bucket==="FAIL"?"12 lỗi cũ":"Nhóm "+bucket+" · "+GROUPS[bucket].n),h,async bx=>{
     let zone=bx.querySelector("#pz").value;if(zone==="__other")zone=bx.querySelector("#pzo").value.trim();
     if(!zone)throw new Error("Chọn Line / Khu vực");
     const sids=[...bx.querySelectorAll(".ckl input:checked")].map(i=>i.value);
@@ -536,7 +536,7 @@ function pinDailyDialog(p){
   box.querySelector("#allok").onclick=()=>box.querySelectorAll(".dchk").forEach(d=>setState(d,"ok"));
 }
 function pinEditDialog(p){
-  const bucket=p.kind==="F"?"F":p.g;const items=bucketItems(bucket);const have=new Set(p.items.map(x=>x.sid));
+  const bucket=p.kind==="F"?"FAIL":p.g;const items=bucketItems(bucket);const have=new Set(p.items.map(x=>x.sid));
   const h='<label class="f">Line / Khu vực'+zoneSelect("ez")+'</label><input class="inp" id="ezo" placeholder="Tên khu vực khác" style="margin-top:6px;display:none">'
    +'<label class="f" style="margin-top:8px">Giao bộ phận'+partSel("eo",p.owner_part)+'</label>'
    +'<div class="f" style="margin-top:10px">Hạng mục trong điểm (bỏ tích = gỡ, tích thêm = bổ sung)</div>'+chkList(items,have);
@@ -552,7 +552,7 @@ function pinEditDialog(p){
 }
 
 /* ---------- bản đồ (tự lấp cờ theo khu vực) ---------- */
-function pinFilter(p){if(MF.g==="F"){if(p.kind!=="F")return false;}else if(MF.g&&(p.kind!=="M"||p.g!==MF.g))return false;if(MF.part&&p.owner_part!==MF.part)return false;if(MF.st&&p.status!==MF.st)return false;return true;}
+function pinFilter(p){if(MF.g==="FAIL"){if(p.kind!=="F")return false;}else if(MF.g&&(p.kind!=="M"||p.g!==MF.g))return false;if(MF.part&&p.owner_part!==MF.part)return false;if(MF.st&&p.status!==MF.st)return false;return true;}
 const MCOL={open:"var(--fail)",reported:"#C77A00",verified:"var(--pass)"};
 function markerPins(pins){
   const byZone={};pins.forEach(p=>{const z=resolveZone(p.zone);if(!z)return;(byZone[p.zone]||(byZone[p.zone]={z,arr:[]})).arr.push(p);});
@@ -564,7 +564,7 @@ function markerPins(pins){
   return out;
 }
 function mapFilters(){
-  let h='<div class="chips"><button class="chip'+(!MF.g?" on":"")+'" data-mg="">Tất cả</button>'+Object.keys(GROUPS).map(g=>'<button class="chip'+(MF.g===g?" on":"")+'" data-mg="'+g+'">'+g+" · "+GROUPS[g].n+"</button>").join("")+'<button class="chip'+(MF.g==="F"?" on":"")+'" data-mg="F">Lỗi cũ</button></div>';
+  let h='<div class="chips"><button class="chip'+(!MF.g?" on":"")+'" data-mg="">Tất cả</button>'+Object.keys(GROUPS).map(g=>'<button class="chip'+(MF.g===g?" on":"")+'" data-mg="'+g+'">'+g+" · "+GROUPS[g].n+"</button>").join("")+'<button class="chip'+(MF.g==="FAIL"?" on":"")+'" data-mg="FAIL">Lỗi cũ</button></div>';
   h+='<div class="bar"><select class="inp" id="mp" style="max-width:140px"><option value="">Mọi bộ phận</option>'+PARTS.map(p=>"<option"+(MF.part===p?" selected":"")+">"+p+"</option>").join("")+'</select><select class="inp" id="ms" style="max-width:180px">'+[["","Mọi trạng thái"],["open","Chờ khắc phục"],["reported","Chờ duyệt"],["verified","Đang duy trì"]].map(o=>'<option value="'+o[0]+'"'+(MF.st===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+'</select><button class="btn ghost sm" id="mz">🔍 '+(MAPZ>1?"Thu nhỏ":"Phóng to")+"</button></div>";
   return h;
 }
