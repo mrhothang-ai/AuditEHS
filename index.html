@@ -67,7 +67,7 @@ main{max-width:860px;margin:0 auto;padding:12px 12px 80px}
 .loc{border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;display:grid;gap:6px;background:#FBFCFE}
 .loc .z{font-weight:600}
 .loc .acts{display:flex;gap:6px;flex-wrap:wrap}
-.loc img{max-width:110px;max-height:90px;border-radius:8px;border:1px solid var(--line);cursor:zoom-in}
+.loc img,.item img{max-width:100%;max-height:160px;width:auto;object-fit:contain;border-radius:8px;border:1px solid var(--line);cursor:zoom-in;display:block}
 .note{font-size:12px;color:var(--muted)}.note.r{color:var(--fail)}
 .grp{font-size:12px;font-weight:700;color:var(--brand);margin:10px 0 5px}
 .zones{display:flex;flex-wrap:wrap;gap:6px}
@@ -87,7 +87,7 @@ h3.sec{font-size:14px;margin:14px 0 6px;color:var(--brand-d)}
 .sw{display:flex;gap:6px}
 .sw label{flex:1;border:1.5px solid var(--line);border-radius:10px;padding:8px;text-align:center;font-weight:600;font-size:13px}
 .sw input{display:none}.sw label.on{border-color:var(--brand);background:var(--brand-t);color:var(--brand)}
-.prev img{max-width:100%;max-height:200px;border-radius:10px;margin-top:6px}
+.prev img{max-width:100%;max-height:200px;width:auto;object-fit:contain;border-radius:10px;margin-top:6px;display:block}
 
 #mapBox{position:relative;width:100%;height:0;padding-top:27.83%;overflow:hidden;background:#e8eef5}
 #mapImg{position:absolute;top:-74.65%;left:0;width:100%;height:auto;display:block}
@@ -118,6 +118,36 @@ h3.sec{font-size:14px;margin:14px 0 6px;color:var(--brand-d)}
 .item .ih{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
 .item .muc{font-size:12px;font-weight:700;color:var(--brand);letter-spacing:.02em;margin-bottom:3px}
 .item .nd2{font-size:15.5px;color:var(--ink);font-weight:600;line-height:1.5;background:linear-gradient(90deg,#FFF9E6,#FFFDF5);border-left:4px solid var(--amber);border-radius:0 10px 10px 0;padding:9px 12px;margin:4px 0 7px}
+
+.pit{margin:6px 0;display:grid;gap:4px}
+.pitem{font-size:13.5px;line-height:1.4;padding-left:2px}
+.pitem b{color:var(--ink)}
+.pno{font-family:var(--mono);font-size:11px;background:var(--brand-t);color:var(--brand);border-radius:5px;padding:1px 5px}
+.dotm{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.dotm.o{background:var(--fail)}.dotm.r{background:#C77A00}.dotm.v{background:var(--pass)}
+.ckl{max-height:40vh;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:4px}
+.ckrow{display:flex;gap:8px;align-items:flex-start;padding:8px;border-bottom:1px solid var(--line2);font-size:13.5px}
+.ckrow:last-child{border-bottom:none}
+.ckrow input{margin-top:3px;width:18px;height:18px;flex:none}
+.ckrow span b{color:var(--brand-d)}
+.ckrow span i{color:var(--muted);font-style:normal}
+.cksrch{width:100%}
+.miss{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px}
+.miss summary{cursor:pointer;font-weight:600;color:var(--muted)}
+.missrow{padding:4px 0;border-top:1px solid var(--line2);color:var(--muted)}
+
+.ptxt{font-weight:600;color:var(--ink)}
+.ckt b{color:var(--brand)}
+.dlist{display:grid;gap:6px;max-height:46vh;overflow:auto}
+.dchk{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.dchk[data-state=ok]{border-color:var(--pass);background:var(--pass-t)}
+.dchk[data-state=ng]{border-color:var(--fail);background:var(--fail-t)}
+.ditx{flex:1;font-size:13.5px;font-weight:600;line-height:1.35}
+.seg{display:flex;gap:0;flex:none;border-radius:8px;overflow:hidden;border:1.5px solid var(--line)}
+.segbtn{border:none;background:#fff;padding:8px 12px;font-weight:700;font-size:13px;color:var(--muted)}
+.segbtn.segng{border-left:1.5px solid var(--line)}
+.segok.on{background:var(--pass);color:#fff}
+.segng.on{background:var(--fail);color:#fff}
 </style>
 </head>
 <body>
@@ -166,9 +196,10 @@ function zoneCenter(line){const z=resolveZone(line);return z?{x:Math.round((z.x+
 function expandCrop(z){const px=Math.max(z.w*0.25,2.5),py=Math.max(z.h*0.1,2.5),x=Math.max(0,z.x-px),y=Math.max(0,z.y-py);return{x:x,y:y,w:Math.min(100-x,z.w+2*px),h:Math.min(100-y,z.h+2*py)};}
 const LImg=new Image();LImg.onerror=()=>{if(!LImg._f){LImg._f=1;LImg.src=LAYOUT_FB;}};LImg.onload=()=>{if(typeof PS!=="undefined"&&PS)drawPin();};LImg.src=LAYOUT_SRC;
 const yPct=y=>((y-BAND_Y0)/(BAND_Y1-BAND_Y0)*100);
+const SHORT={"M01": "Bình chữa cháy: đủ vị trí, không che chắn, không lấn layout, 5S sạch", "M02": "Họng chữa cháy: có biển báo + HDSD; đồng hồ áp rõ, chính xác", "M03": "Họng: không che chắn, cửa mở dễ; 5S + checklist/tháng", "M04": "Đèn Exit luôn sáng, 2 đèn cách ≤30m, chỉ đúng hướng", "M05": "Tem Exit nền đúng hướng, đúng khoảng cách, không bong bạc", "M06": "Lối thoát đủ rộng, không vật cản; cửa thoát hiểm không khóa/kẹt", "M07": "Đèn chiếu sáng khẩn cấp (con cóc) luôn sáng ≥1 bóng/vị trí", "M08": "Sơ đồ thoát nạn đúng vị trí, đúng hướng, đúng chuẩn", "M09": "Nút dừng khẩn (nấm đỏ/nền vàng) gần tay, không che khuất, hoạt động", "M10": "Vùng nguy hiểm có cover/sensor/interlock phòng hộ", "M11": "Cover/interlock lắp cố định; chỉ chạy khi cửa đóng kín", "M12": "Khu tia X/laser/UV có cover phòng hộ phù hợp", "M13": "Đèn 3 màu rõ trạng thái, lắp cao, thấy từ 4 phía", "M14": "Bất thường: chuông kêu + đèn 3 màu; âm ≥80 dB", "M15": "Tem/nhãn cảnh báo tại khu nguy hiểm; có tiếng Việt", "M16": "Có SOP vận hành, ATMT, vệ sinh/bảo dưỡng, checklist ngày", "M17": "MSDS đủ 16 nội dung, chuẩn GHS, có xác nhận Health P.", "M18": "Hóa chất đủ tem/nhãn/hình đồ; có biển cấm lửa; không rách bẩn", "M19": "Người tiếp xúc hóa chất đủ PTBVCN theo chuẩn EHS", "M20": "Có hút mùi cục bộ + thông gió; xe/rack hóa chất tiếp địa", "M21": "Có biện pháp chống tràn đổ khi san chiết/sử dụng", "M22": "Có thùng thu gom rác nguy hại tại khu dùng hóa chất", "M23": "Khu lưu trữ có khay chống tràn ≥110% + giấy thấm", "M24": "Đủ thiết bị ứng phó: PCCC, rửa mắt, tắm khẩn cấp", "M25": "Bảo quản đúng loại (không để chung chất dễ cháy, tránh nắng)", "M26": "Hóa chất sạch, ≤2 tầng, đậy nắp, trên pallet, không xếp lẫn", "M27": "Rác/vỏ bình hóa chất phân loại riêng, đưa ra kho nguy hại", "M28": "Có quy trình + phân loại rác thải nguy hại", "M29": "Ổ cắm đạt chuẩn, có tiếp địa, che ổ không dùng, <60°C", "M30": "Dây không dị hình, không vắt lối đi, không hở lõi, không bị đè", "M31": "Đường điện trên sàn có cover bảo vệ", "M32": "Có cover ngăn tiếp xúc phần mang điện", "M33": "Có biển tên, sơ đồ mạch, quy định an toàn, cảnh báo", "M34": "Vỏ/cửa kim loại tiếp địa; tủ ngoài xưởng kín nước, côn trùng", "M35": "Bóp đầu cose, màu áo cose đúng pha, đúng chuẩn", "M36": "Phần hở tủ điện bịt kín bằng vật liệu chống cháy", "M37": "Người làm điện đủ PTBVCN", "M38": "Tủ sơ cứu đủ vật tư, dễ lấy (1 tủ C/150 người)", "M39": "Có người sơ cứu được đào tạo (1/100 người)", "M40": "Cấp đúng chủng loại PTBVCN từng công đoạn", "M41": "Nhân viên tuân thủ PPE theo công việc", "M42": "Kiểm tra an toàn thiết bị trước khi vận hành", "M43": "Không xếp quá cao; hàng trên rack ≤1,6 m, cách trần ≥0,6 m", "M44": "Rack, xe transfer đúng thiết kế, không cong vênh, bịt đầu nhọn", "M45": "Vị trí làm việc sạch bụi/rác; đủ dụng cụ vệ sinh, thùng rác", "M46": "Bàn/băng tải sạch, không vẽ bậy/dính keo; đủ vạch pitch", "M47": "Line off thu dọn về kho; line on đủ chổi 5S, thùng rác, sạch", "M48": "Túi checksheet/WI gọn, đồng bộ, cập nhật mới", "M49": "Thiết bị trong ngoài sạch; không rò dầu/nước; filter đúng chu kỳ", "M50": "Băng tải, sensor tốt, không dồn hàng; cơ cấu có cover", "M51": "Layout/biển/tem/vị trí tool đồng bộ, thẳng hàng", "M52": "Layout dán tape/tem góc (lối đi xanh lá 10cm, rack xanh dương 5cm)", "M53": "Vật liệu đúng khu; không chồng tray >40cm hoặc chênh vênh", "M54": "Không để vật liệu xuống nền; tray/box trên giá, đúng chiều, sạch", "M55": "Có vị trí hàng NG riêng (label/tape đỏ); không lẫn OK/NG", "M56": "Dụng cụ đúng vị trí; không để jig/vật tư thừa bừa bãi", "M57": "Dây điện/mạng/khí gọn trong máng; không hở lõi, lỏng giắc", "M58": "Quạt/súng ion setup đúng ESD/EOS; tay bắt vít cố định", "M59": "Quạt/súng ion, wrist strap, đồng hồ cố định, tốt, đèn báo rõ", "M60": "Nhân viên tuân thủ ESD/EOS + chống xước (wrist strap, găng)", "M61": "Tem/nhãn/HDVH/spec dán đủ, rõ, có tiếng Việt", "M62": "Thẻ My Machine + checksheet/cảm áp đủ, đúng chu kỳ", "M63": "Tuân thủ đồng phục, búi tóc, đi tất; không đồ ăn/đồ cá nhân", "M64": "Bỏ hết logo/văn hóa tổ chức cũ trên máy, box, tem, bảng", "M65": "Xưởng gọn sạch; tường/sơn không bong; ồn ≤85 dB; tiện ích tốt", "M66": "Chống bụi hàng/thiết bị/jig trong kho (rèm, nắp, vinyl)", "M67": "Hàng/jig không chồng lộn xộn; để trên pallet, không xuống sàn", "M68": "Máy không dùng/chờ setup để khu riêng, có biển, quấn vinyl", "M69": "5S3D kho/dock: sàng lọc, vệ sinh rack; không chất lên nóc/gầm", "M70": "Layout kho dán tape phân định rack/pallet/lối đi, không bong", "M71": "Quản lý vị trí theo Bin/rack; biển/label đồng bộ, tốt", "M72": "Niêm yết list hàng đầu rack (tên-code-spec-vị trí) đúng thực tế", "M73": "Thẻ tên hàng đủ thông tin (code-spec-SL cập nhật-hình), tốt", "M74": "Hàng NG/chờ hủy để riêng, tape đỏ bao kín rack/pallet", "M75": "Quản lý 3D (loại-SL-vị trí) + FIFO; đối chiếu thực tế/hệ thống", "M76": "Có biển tên khu vực + thẻ My Area (ảnh, tên, SĐT)", "M77": "Phòng nghỉ/locker sạch thoáng, không xuống cấp, an ninh tốt", "M78": "WC, cây nước, y tế, nhà ăn sạch, không quá tải, đảm bảo ATVSTP", "M79": "Ngoài xưởng: thoát nước, chiếu sáng, họng cứu hỏa tốt; không để rác phơi mưa", "M80": "Bảng tin/băng rôn/poster ngay ngắn, cập nhật, không tiếng Hàn", "F01": "Không để hàng trên nóc rack; keo có tiếng Việt; rack Jig có thông tin quản lý", "F02": "Không dùng băng dính thay áo cose", "F03": "Khay OK/NG có label; hàng NG để đúng layout", "F04": "Thiết bị/jig có layout + thông tin quản lý", "F05": "Có danh mục hàng hóa, số lượng, thông tin quản lý", "F06": "Mỡ/hóa chất có tem nhãn + cảnh báo", "F07": "Layout đỏ có thông tin rõ ràng", "F08": "Nút alarm lamp máy Xray hoạt động", "F09": "Rack vật liệu NG dán layout đỏ", "F10": "Phân biệt layout để hàng OK/NG", "F11": "Có biển exit + đèn chiếu sáng khẩn cấp", "F12": "Mở cửa máy thì đèn báo phải đổi (không còn xanh)"};
 const SUBJ=[];
-ITEMS.forEach(i=>SUBJ.push({sid:i.sid,kind:"M",label:"#"+i.no,g:i.g,title:i.muc,desc:i.nd,bp:i.bp,tab:"M"}));
-FAILS.forEach(f=>SUBJ.push({sid:f.sid,kind:"F",label:"L"+f.id,g:f.g,title:f.vt+" — "+f.muc+" (mã "+f.ma+")",desc:f.nd,bp:f.bp,tab:"F",typ:f.type}));
+ITEMS.forEach(i=>SUBJ.push({sid:i.sid,kind:"M",label:"#"+i.no,g:i.g,title:i.muc,desc:i.nd,short:SHORT[i.sid]||i.nd,bp:i.bp,tab:"M"}));
+FAILS.forEach(f=>SUBJ.push({sid:f.sid,kind:"F",label:"L"+f.id,g:f.g,title:f.vt+" — "+f.muc,desc:f.nd,short:SHORT[f.sid]||f.nd,bp:f.bp,tab:"F",typ:f.type}));
 const BY={};SUBJ.forEach(s=>BY[s.sid]=s);
 
 const $=id=>document.getElementById(id);
@@ -188,20 +219,15 @@ function demoClient(){
   const iso=(d)=>new Date(Date.now()-d*864e5).toISOString();
   const db={round:1,req_photo:true,ehs:["Demo EHS"],na:["M60"],locs:[],events:[],daily:[]};let n=0;
   const users={"Demo EHS":{role:"user",part:"HR"},"Demo PRO":{role:"user",part:"PRO"},"Demo QC":{role:"user",part:"QC"},"Demo Kho":{role:"user",part:"MM"}};
-  const mk=(sid,zone,detail,part,status,extra)=>{const l=Object.assign({id:"D"+(++n),sid,zone,detail,owner_part:part,status,active:true,created_by:"Demo EHS",created_part:"HR",created_round:1,created_at:iso(1)},extra||{});db.locs.push(l);db.events.push({id:++n,loc_id:l.id,sid,action:"create",round:1,at:l.created_at});if(status==="verified")db.events.push({id:++n,loc_id:l.id,sid,action:"verify",round:1,at:iso(0)});return l;};
-  const P=(zone,k)=>{const c=zoneCenter(zone)||{x:50,y:50};const a=(k||0)*1.2;return{pin_id:"P_"+zone+"_"+(k||0),x:Math.round((c.x+a)*100)/100,y:Math.round((c.y+a*0.6)*100)/100};};
-  const V={verified_by:"Demo EHS",verified_at:iso(0)};
-  mk("M01","Line 3A","Bình chữa cháy bị che bởi pallet","PRO","verified",Object.assign({},V,P("Line 3A",0)));
-  mk("M06","Line 3A","Lối thoát bị chặn bởi khay hàng","PRO","open",P("Line 3A",0));
-  mk("M01","Line 5B","Thiếu bình chữa cháy","PRO","open",P("Line 5B",0));
-  mk("M01","Khu vực kho jig","Bình để dưới sàn","EQM","open",P("Khu vực kho jig",0));
-  mk("M02","Line 1A","Đồng hồ áp suất không có vạch","HR","open",P("Line 1A",0));
-  mk("M06","Line 8B","Lối thoát bị chặn bởi khay hàng","PRO","open",P("Line 8B",0));
-  mk("M70","Khu vực kho vật liệu","Hàng để trên nóc rack","MM","open",P("Khu vực kho vật liệu",0));
-  mk("F07","Khu vực kho vật liệu","Hàng hóa để trên nóc rack","MM","open",P("Khu vực kho vật liệu",0));
-  mk("M70","Khu vực WIP","Không có layout","QC","verified",Object.assign({},V,P("Khu vực WIP",0)));
-  mk("F09","Khu vực WIP","Thiếu label OK/NG","QC","open",P("Khu vực WIP",1));
-  const rep={reported_by:"Demo PRO",reported_part:"PRO",reported_at:iso(0),reported_round:2,report_note:"Đã sắp xếp lại theo layout"};
+  let pc2=0;
+  const mk=(sid,zone,detail,part,status,extra)=>{const l=Object.assign({id:"D"+(++n),sid,zone,detail,owner_part:part,status,active:true,created_by:"Demo EHS",created_part:"HR",created_round:1,created_at:iso(0)},extra||{});db.locs.push(l);return l;};
+  const mkPin=(zone,part,status,sids)=>{const pid="P"+(++pc2);sids.forEach(sid=>{const st=status;const l={id:"D"+(++n),sid,zone,detail:"",owner_part:part,status:st,active:true,created_by:"Demo EHS",created_part:"HR",created_round:1,created_at:iso(2),pin_id:pid,init_photo:null};if(st==="verified"){l.verified_by="Demo EHS";l.verified_at=iso(0);}if(st==="reported"){l.reported_by="Demo "+part;l.reported_part=part;l.reported_at=iso(0);l.report_note="Đã khắc phục";}db.locs.push(l);db.events.push({id:++n,loc_id:l.id,sid,action:"create",round:1,at:l.created_at});});return pid;};
+  mkPin("Line 3A","PRO","open",["M01","M02","M03"]);
+  mkPin("Line 5B","PRO","verified",["M01","M02"]);
+  mkPin("Khu vực kho vật liệu","MM","open",["M70","M71"]);
+  mkPin("Khu vực WIP","QC","reported",["M74","M75"]);
+  mkPin("Line 8B","PRO","open",["M06"]);
+  mkPin("Khu vực kho vật liệu","MM","open",["F07"]);
   const blobs={};
   const find=id=>db.locs.find(x=>x.id===id);
   const ev=(l,a,m,note)=>db.events.push({id:++n,loc_id:l.id,sid:l.sid,action:a,by_name:m.name,by_part:m.part,round:db.round,note:note||null,at:new Date().toISOString()});
@@ -228,6 +254,11 @@ function demoClient(){
       if(fn==="vt_set_na"){NEED(m,true);db.na=db.na.filter(x=>x!==a.p_sid);if(a.p_na)db.na.push(a.p_sid);return{data:null};}
       if(fn==="vt_set_setting"){NEED(m,true);if(a.p_key==="round")db.round=+a.p_value;else db.req_photo=a.p_value==="1";return{data:null};}
       if(fn==="vt_set_ehs"){NEED(m,true);db.ehs=db.ehs.filter(x=>x!==a.p_name);if(a.p_on)db.ehs.push(a.p_name);return{data:null};}
+      if(fn==="vt_pin_report"){NEED(m,false);const rows=db.locs.filter(l=>l.pin_id===a.p_pin&&l.active);if(!rows.length)throw new Error("Không tìm thấy điểm");const own=rows[0].owner_part;if(!m.ehs&&own!==m.part)throw new Error("Điểm thuộc bộ phận "+(own||"(chưa gán)"));if(!m.ehs&&!a.p_photo)throw new Error("Cần ảnh sau khắc phục");rows.filter(l=>l.status==="open").forEach(l=>{Object.assign(l,{status:m.ehs?"verified":"reported",reported_by:m.name,reported_part:m.part,reported_at:new Date().toISOString(),report_photo:a.p_photo||null,report_note:a.p_note||null,reject_note:null});if(m.ehs){l.verified_by=m.name;l.verified_at=l.reported_at;}ev(l,"report_ok",m);if(m.ehs)ev(l,"verify",m);});return{data:null};}
+      if(fn==="vt_pin_verify"){NEED(m,true);const rows=db.locs.filter(l=>l.pin_id===a.p_pin&&l.active&&l.status==="reported");if(!rows.length)throw new Error("Không có hạng mục chờ duyệt");if(!a.p_ok&&!a.p_note)throw new Error("Cần lý do trả lại");rows.forEach(l=>{if(a.p_ok){Object.assign(l,{status:"verified",verified_by:m.name,verified_at:new Date().toISOString(),reject_note:null});ev(l,"verify",m);}else{reset(l);l.status="open";l.reject_note=a.p_note;ev(l,"reject",m,a.p_note);}});return{data:null};}
+      if(fn==="vt_pin_daily"){NEED(m,false);const rows=db.locs.filter(l=>l.pin_id===a.p_pin&&l.active);if(!rows.length)throw new Error("Không tìm thấy điểm");const own=rows[0].owner_part;if(!m.ehs&&own!==m.part)throw new Error("Không thuộc bộ phận bạn");const ng=new Set(a.p_ng_sids||[]);if(ng.size&&!a.p_photo)throw new Error("Có NG thì bắt buộc ảnh");const t2=(new Date()).toISOString().slice(0,10);rows.filter(l=>l.status==="verified").forEach(l=>{const isng=ng.has(l.sid);db.daily=db.daily.filter(x=>!(x.loc_id===l.id&&x.day===t2));db.daily.push({loc_id:l.id,sid:l.sid,day:t2,result:isng?"ng":"ok",by_name:m.name,by_part:m.part,photo:a.p_photo||null});ev(l,isng?"daily_ng":"daily_ok",m,a.p_note);if(isng){reset(l);l.status="open";l.reject_note="Duy trì NG "+t2;}});return{data:null};}
+      if(fn==="vt_pin_edit"){NEED(m,true);const rows=db.locs.filter(l=>l.pin_id===a.p_pin&&l.active);if(!rows.length)throw new Error("Không tìm thấy điểm");const ph=(rows.find(l=>l.init_photo)||{}).init_photo||null;rows.forEach(l=>{l.zone=a.p_zone;l.owner_part=a.p_owner||"";});(a.p_remove||[]).forEach(sid=>{const l=rows.find(x=>x.sid===sid);if(l)l.active=false;});(a.p_add||[]).forEach(sid=>{if(db.locs.some(l=>l.pin_id===a.p_pin&&l.sid===sid&&l.active))return;const l={id:"D"+(++n),sid,zone:a.p_zone,detail:"",owner_part:a.p_owner||"",status:"open",active:true,created_by:m.name,created_part:m.part,created_round:1,created_at:new Date().toISOString(),pin_id:a.p_pin,init_photo:ph};db.locs.push(l);ev(l,"create",m);});return{data:null};}
+      if(fn==="vt_remove_pin"){NEED(m,true);db.locs.forEach(l=>{if(l.pin_id===a.p_pin)l.active=false;});return{data:null};}
       if(fn==="vt_daily_check"){NEED(m,false);const l=find(a.p_loc);if(!l||l.status!=="verified")throw new Error("Điểm chưa ở trạng thái duy trì");if(!m.ehs&&l.owner_part!==m.part)throw new Error("Không thuộc bộ phận bạn");if(a.p_result==="ng"&&!a.p_photo)throw new Error("Báo NG bắt buộc có ảnh");const t2=(new Date()).toISOString().slice(0,10);db.daily=db.daily.filter(x=>!(x.loc_id===l.id&&x.day===t2));db.daily.push({loc_id:l.id,sid:l.sid,day:t2,result:a.p_result,by_name:m.name,by_part:m.part,photo:a.p_photo||null});ev(l,"daily_"+a.p_result,m,a.p_note);if(a.p_result==="ng"){reset(l);l.status="open";l.reject_note="Duy trì NG "+t2;}return{data:null};}
       return{data:null};
     }catch(e){return{error:{message:e.message}};}}
@@ -263,25 +294,37 @@ async function reload(){const d=await rpc("vt_state",{p_token:SES?SES.token:null
 /* ---------- tiện ích dữ liệu ---------- */
 const isEHS=()=>!!(S.me&&S.me.ehs);
 const locsOf=sid=>S.locs.filter(l=>l.sid===sid);
-function stat(sid){const L=locsOf(sid);const o=L.filter(l=>l.status==="open").length,r=L.filter(l=>l.status==="reported").length,v=L.filter(l=>l.status==="verified").length;return{t:L.length,o,r,v,na:S.na.includes(sid)};}
-function stLabel(st){if(st.na)return'<span class="st na">Không liên quan (N/A)</span>';if(!st.t)return'<span class="st none">Chưa lập</span>';if(st.v===st.t)return'<span class="st verified">Đang duy trì</span>';return'<span class="st open">'+st.o+' chờ khắc phục</span>'+(st.r?' <span class="st reported">'+st.r+' chờ duyệt</span>':"");}
 const STN={open:"Chờ khắc phục",reported:"Đã khắc phục · chờ EHS duyệt",verified:"Đang duy trì"};
 const todayStr=()=>{const d=new Date(),p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());};
 function dailyToday(id){const tt=todayStr();return (S.daily||[]).find(x=>x.loc_id===id&&String(x.day).slice(0,10)===tt)||null;}
-function guessPart(bp){const m={"Sản xuất":"PRO","QC":"QC","Thiết bị":"EQM","Automation":"EQM","Kho":"MM","Kho - Khu vực RMA":"MM","EHS":"HR","HR":"HR","Y tế":"HR","An ninh":"HR","HR-EHS":"HR"};const a=String(bp).split(",").map(x=>m[x.trim()]).filter(Boolean);return a.find(x=>x!=="HR")||a[0]||"";}
+function guessPart(bp){const m={"Sản xuất":"PRO","QC":"QC","Thiết bị":"EQM","Automation":"EQM","Kho":"MM","Kho - Khu vực RMA":"MM","EHS":"HR","HR":"HR","Y tế":"HR","An ninh":"HR","HR-EHS":"HR"};const a=String(bp||"").split(",").map(x=>m[x.trim()]).filter(Boolean);return a.find(x=>x!=="HR")||a[0]||"";}
 const fdt=t=>{if(!t)return"";const d=new Date(t);return d.toLocaleDateString("vi-VN")+" "+d.toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"});};
 const pc=(a,b)=>b?Math.round(a*1000/b)/10:0;
-function canFix(l){if(!S.me||l.status!=="open")return false;if(isEHS())return true;return l.owner_part&&S.me.part===l.owner_part;}
-function canDaily(l){if(!S.me||l.status!=="verified")return false;if(isEHS())return true;return l.owner_part&&S.me.part===l.owner_part;}
+function bucketItems(bk){return bk==="F"?SUBJ.filter(s=>s.tab==="F"):SUBJ.filter(s=>s.tab==="M"&&s.g===bk);}
+/* gộp các dòng (pin_id, hạng mục) thành ĐIỂM = địa điểm × nhóm */
+function allPins(){
+  const m={};
+  S.locs.forEach(l=>{const s=BY[l.sid];if(!s||!l.pin_id)return;
+    const p=m[l.pin_id]||(m[l.pin_id]={id:l.pin_id,zone:l.zone,owner_part:l.owner_part,kind:s.kind,g:s.kind==="F"?"F":s.g,items:[],photo:null,created_by:l.created_by,created_at:l.created_at});
+    p.items.push(l);if(l.init_photo&&!p.photo)p.photo=l.init_photo;if(l.owner_part)p.owner_part=l.owner_part;});
+  const a=Object.values(m);
+  a.forEach(p=>{p.status=p.items.some(x=>x.status==="open")?"open":p.items.some(x=>x.status==="reported")?"reported":"verified";p.items.sort((x,y)=>(BY[x.sid].no||BY[x.sid].id||0)-(BY[y.sid].no||BY[y.sid].id||0));});
+  return a;
+}
+function pinById(id){return allPins().find(p=>p.id===id)||null;}
+function pinDailyToday(p){const vs=p.items.filter(x=>x.status==="verified");if(!vs.length)return null;const ds=vs.map(x=>dailyToday(x.id));if(ds.some(d=>d&&d.result==="ng"))return "ng";if(ds.every(d=>d&&d.result==="ok"))return "ok";return "partial";}
+function canFixPin(p){if(!S.me||p.status!=="open")return false;return isEHS()||(p.owner_part&&p.owner_part===S.me.part);}
+function canVerifyPin(p){return isEHS()&&p.status==="reported";}
+function canDailyPin(p){if(!S.me||!p.items.some(x=>x.status==="verified"))return false;return isEHS()||(p.owner_part&&p.owner_part===S.me.part);}
 
 /* ---------- vỏ ứng dụng ---------- */
 function show(){$("app").classList.remove("hidden");$("btnOut").textContent=GUEST?"Đăng nhập":"Đăng xuất";$("btnOut").onclick=logout;render();}
 function render(){
   if(!$("app")||$("app").classList.contains("hidden"))return;
   $("who").textContent=S.me?(S.me.name+" · "+(S.me.part||"—")+(S.me.ehs?" · PIC EHS":"")):"Khách · chỉ xem báo cáo";
-  const vcnt=S.locs.filter(l=>l.status==="verified").length;$("rchip").textContent=S.locs.length?("Duy trì "+vcnt+"/"+S.locs.length):"";
-  const pend=S.locs.filter(l=>l.status==="reported").length;
-  const myopen=S.me&&!isEHS()?S.locs.filter(l=>l.owner_part===S.me.part&&l.status==="open").length:0;
+  const P=allPins();const vp=P.filter(p=>p.status==="verified").length;$("rchip").textContent=P.length?("Duy trì "+vp+"/"+P.length):"";
+  const pend=P.filter(p=>p.status==="reported").length;
+  const myopen=S.me&&!isEHS()?P.filter(p=>p.owner_part===S.me.part&&p.status==="open").length:0;
   const tabs=GUEST?[["map","🗺 Bản đồ"],["report","📊 Báo cáo"]]:(isEHS()
     ?[["M","📋 Lập danh mục"],["F","🔁 12 lỗi cũ"],["dept","🛠 Theo bộ phận"+(pend?'<span class="badge">'+pend+"</span>":"")],["map","🗺 Bản đồ"],["report","📊 Báo cáo"],["set","⚙️"]]
     :[["dept","🛠 Việc của tôi"+(myopen?'<span class="badge">'+myopen+"</span>":"")],["map","🗺 Bản đồ"],["report","📊 Báo cáo"]]);
@@ -295,70 +338,47 @@ function render(){
   else if(TAB==="report")m.innerHTML=renderReport();
   else if(TAB==="set")m.innerHTML=renderSettings();
   bindMain();
-  if(CURPIN&&$("modal").innerHTML)openPoint(CURPIN,true);
+  if(CURPIN&&$("modal").innerHTML)openPin(CURPIN,true);
 }
-
 function roundBanner(){
-  return'<div class="banner blue"><b>Quy trình:</b> PIC EHS lập điểm kiểm soát theo từng mục &amp; giao bộ phận → bộ phận khắc phục (kèm ảnh) → EHS duyệt → duy trì kiểm tra hằng ngày (OK/NG).</div>';
+  return'<div class="banner blue"><b>Quy trình:</b> EHS lập điểm = chọn địa điểm + nhóm, tích các hạng mục cần kiểm soát &amp; giao bộ phận → bộ phận khắc phục (ảnh) → EHS duyệt → duy trì OK/NG hằng ngày.</div>';
 }
+function curBucket(){return TAB==="F"?"F":(FILT.g&&FILT.g!=="F"?FILT.g:"A");}
 function renderList(kind){
-  const list=SUBJ.filter(s=>s.tab===kind);
   let h=roundBanner();
   if(kind==="M"){
-    if(!FILT.g||FILT.g==="")FILT.g="A";
-    h+='<div class="grp-sub">Chọn nhóm vấn đề rồi đi rà soát lần lượt từng mục trên toàn bộ line/khu vực. Mỗi mục bấm 📍 để ghim vị trí NG.</div>';
-    h+='<div class="grp-pick">'+Object.keys(GROUPS).map(g=>{const xs=list.filter(s=>s.g===g);const d=xs.filter(s=>{const st=stat(s.sid);return st.t>0||st.na;}).length;const done=d>=xs.length;return'<button class="gbtn'+(FILT.g===g?" on":"")+(done?" ok":"")+'" data-g="'+g+'"><b>'+g+'</b><span>'+GROUPS[g].n+'</span><em>'+d+"/"+xs.length+(done?" ✓":"")+"</em></button>";}).join("")+"</div>";
+    FILT.g=FILT.g&&FILT.g!=="F"?FILT.g:"A";
+    h+='<div class="grp-sub">Chọn nhóm → "Thêm điểm kiểm soát": chọn địa điểm rồi tích các hạng mục của nhóm cần kiểm soát ở đó.</div>';
+    h+='<div class="grp-pick">'+Object.keys(GROUPS).map(g=>{const its=bucketItems(g);const cov=new Set(S.locs.filter(l=>BY[l.sid]&&BY[l.sid].g===g&&BY[l.sid].kind==="M").map(l=>l.sid)).size;const done=cov>=its.length;return'<button class="gbtn'+(FILT.g===g?" on":"")+(done?" ok":"")+'" data-g="'+g+'"><b>'+g+'</b><span>'+GROUPS[g].n+'</span><em>'+cov+"/"+its.length+(done?" ✓":"")+"</em></button>";}).join("")+"</div>";
   }
-  const base=list.filter(s=> kind==="F"?true:s.g===FILT.g);
+  const bk=kind==="F"?"F":FILT.g;
+  const pins=allPins().filter(p=> kind==="F"?p.kind==="F":(p.kind==="M"&&p.g===bk));
+  if(isEHS())h+='<button class="btn" id="addPin" style="width:100%;margin-bottom:10px;font-size:15px">➕ Thêm điểm kiểm soát ('+(kind==="F"?"12 lỗi cũ":"Nhóm "+bk)+")</button>";
+  h+='<div class="bar"><input class="inp" id="fq" placeholder="Tìm địa điểm / hạng mục…" value="'+esc(FILT.q)+'"></div>';
   const q=FILT.q.toLowerCase();
-  const rows=base.filter(s=> !q || (s.title+" "+s.desc+" "+s.label+" "+s.bp).toLowerCase().includes(q));
-  h+='<div class="bar"><input class="inp" id="fq" placeholder="Tìm trong danh sách…" value="'+esc(FILT.q)+'"></div>';
-  const na=base.filter(s=>stat(s.sid).na).length, dn=base.filter(s=>stat(s.sid).t>0).length, tot=base.reduce((a,s)=>a+stat(s.sid).t,0);
-  h+='<div class="meta" style="margin-bottom:8px">'+(kind==="F"?"12 lỗi lần trước":("Nhóm "+FILT.g+" · "+GROUPS[FILT.g].n))+" — đã rà soát "+(dn+na)+"/"+base.length+" mục · "+tot+" vị trí đã ghim</div>";
-  h+=rows.map(s=>itemCard(s)).join("")||'<div class="note">Không có mục phù hợp.</div>';
+  const shown=pins.filter(p=> !q || (p.zone+" "+p.items.map(i=>BY[i.sid].title+" "+BY[i.sid].desc).join(" ")).toLowerCase().includes(q));
+  const its=bucketItems(bk);const cov=new Set(S.locs.filter(l=>its.some(it=>it.sid===l.sid)).map(l=>l.sid));
+  const inst=S.locs.filter(l=>its.some(it=>it.sid===l.sid)).length;
+  h+='<div class="meta" style="margin-bottom:8px">'+pins.length+" điểm · "+cov.size+"/"+its.length+" hạng mục đã có điểm · "+inst+" lượt kiểm soát</div>";
+  h+=shown.map(pinCard).join("")||'<div class="note">Chưa có điểm nào'+(q?" khớp tìm kiếm":"")+'.</div>';
+  const missing=its.filter(it=>!cov.has(it.sid));
+  if(missing.length)h+='<details class="miss"><summary>Hạng mục chưa có điểm ('+missing.length+")</summary>"+missing.map(it=>'<div class="missrow"><b>'+it.label+"</b> "+esc(it.short)+"</div>").join("")+"</details>";
   return h;
 }
-function itemCard(s){
-  const st=stat(s.sid), L=locsOf(s.sid);
-  const cls=st.na?"na":(st.t?(st.v===st.t?"done":"has"):"todo");
-  let h='<div class="item '+cls+'" data-sid="'+s.sid+'"><div class="ih"><span class="no">'+s.label+'</span><span class="gb">'+s.g+" · "+GROUPS[s.g].n+"</span>"+stLabel(st)+'</div>';
-  h+='<div class="muc">'+esc(s.title)+'</div><div class="nd2">'+esc(s.desc)+"</div>";
-  if(s.typ)h+='<div class="banner">'+(s.typ==="all"?"Lỗi sắp xếp/bố trí: rà <b>toàn bộ line/khu vực</b>, ghim từng vị trí còn tồn.":"Kiểm lại vị trí cũ <b>và các vị trí lỗi tương tự</b>.")+"</div>";
-  h+='<div class="meta"><span>BP: '+esc(s.bp)+"</span>"+(st.t?"<span>"+st.t+" vị trí</span>":"")+"</div>";
-  h+=L.map(l=>locCard(l,false)).join("");
-  if(isEHS()){
-    h+='<div class="acts">';
-    h+='<button class="btn sm" data-pin="'+s.sid+'">➕ Thêm điểm kiểm soát</button>';
-    if(!L.length)h+=st.na?'<button class="btn ghost sm" data-naoff="'+s.sid+'">Bỏ N/A</button>':'<button class="btn ghost sm" data-na="'+s.sid+'">Không có NG (N/A)</button>';
-    h+="</div>";
-  }else if(!L.length){h+='<div class="note">'+(st.na?"EHS xác nhận mục này không có vị trí.":"Chưa ghi nhận vị trí nào.")+"</div>";}
-  return h+"</div>";
-}
-function renderPending(){
-  const L=S.locs.filter(l=>l.status==="reported");
-  if(!L.length)return'<div class="banner blue">Không có vị trí nào đang chờ duyệt.</div>';
-  return'<div class="meta" style="margin-bottom:8px">'+L.length+" vị trí chờ PIC EHS xác nhận</div>"+L.map(l=>locCard(l,true)).join("");
-}
-function locCard(l,withSubj){
-  const s=BY[l.sid];const dr=dailyToday(l.id);
-  let h='<div class="loc" data-loc="'+l.id+'">';
-  if(withSubj)h+='<div class="meta"><span class="no">'+s.label+'</span><b>'+esc(s.title)+'</b></div>';
-  h+='<div class="row"><span class="z">📍 '+esc(l.zone)+'</span>'+(l.owner_part?'<span class="pt">'+esc(l.owner_part)+'</span>':'<span class="pt">chưa gán</span>')+'<span class="st '+l.status+'">'+STN[l.status]+'</span>'+(l.status==="verified"?(dr?(dr.result==="ok"?'<span class="st verified">✓ Hôm nay OK</span>':'<span class="st open">⚠ Hôm nay NG</span>'):'<span class="st none">Hôm nay chưa kiểm</span>'):"")+'</div>';
-  if(l.detail)h+='<div>'+esc(l.detail)+'</div>';
-  h+='<div class="note">Lập bởi '+esc(l.created_by||"")+' · '+fdt(l.created_at)+'</div>';
-  if(l.init_photo)h+='<div><img src="'+esc(l.init_photo)+'" data-zoom="1" alt=""></div>';
-  if(l.reject_note&&l.status==="open")h+='<div class="note r">↩ Trả lại / phát hiện lại: '+esc(l.reject_note)+'</div>';
-  if(l.reported_by)h+='<div class="note">Khắc phục bởi '+esc(l.reported_by)+(l.reported_part?" ("+esc(l.reported_part)+")":"")+' · '+fdt(l.reported_at)+(l.report_note?" · "+esc(l.report_note):"")+'</div>';
-  if(l.report_photo)h+='<div><img src="'+esc(l.report_photo)+'" data-zoom="1" alt=""></div>';
-  if(l.verified_by)h+='<div class="note">✔ EHS duyệt: '+esc(l.verified_by)+' · '+fdt(l.verified_at)+'</div>';
+function pinCard(p){
+  const dr=pinDailyToday(p);
+  let h='<div class="item '+p.status+'" data-pinid="'+p.id+'">';
+  h+='<div class="ih"><span class="z">📍 '+esc(p.zone)+'</span>'+(p.owner_part?'<span class="pt">'+esc(p.owner_part)+'</span>':'<span class="pt">chưa gán</span>')+'<span class="gb">'+(p.kind==="F"?"Lỗi cũ":p.g+" · "+GROUPS[p.g].n)+'</span><span class="st '+p.status+'">'+STN[p.status]+'</span>'+(p.status==="verified"&&dr?(dr==="ok"?'<span class="st verified">✓ Hôm nay OK</span>':dr==="ng"?'<span class="st open">⚠ Hôm nay NG</span>':'<span class="st none">Hôm nay chưa đủ</span>'):"")+'</div>';
+  h+='<div class="pit">'+p.items.map(l=>{const s=BY[l.sid];const cl=l.status==="open"?"o":l.status==="reported"?"r":"v";return '<div class="pitem"><span class="dotm '+cl+'"></span><span class="pno">'+s.label+'</span> <span class="ptxt">'+esc(s.short)+'</span>'+(l.reject_note&&l.status==="open"?' <span class="note r">↩ '+esc(l.reject_note)+'</span>':"")+'</div>';}).join("")+'</div>';
+  if(p.photo)h+='<div><img src="'+esc(p.photo)+'" data-zoom="1" alt=""></div>';
+  h+='<div class="note">Lập bởi '+esc(p.created_by||"")+' · '+fdt(p.created_at)+'</div>';
   let a="";
-  if(canFix(l))a+='<button class="btn ok sm" data-act="fix" data-id="'+l.id+'">✓ Báo đã khắc phục</button>';
-  if(isEHS()&&l.status==="reported")a+='<button class="btn ok sm" data-act="vok" data-id="'+l.id+'">✔ Duyệt</button><button class="btn bad sm" data-act="vno" data-id="'+l.id+'">✖ Trả lại</button>';
-  if(canDaily(l))a+='<button class="btn sm" data-act="daily" data-id="'+l.id+'">📋 Kiểm tra duy trì hôm nay</button>';
-  if(isEHS()&&l.status==="verified")a+='<button class="btn ghost sm" data-act="reopen" data-id="'+l.id+'">↩ Phát hiện lại (mở lại)</button>';
-  if(isEHS())a+='<button class="btn ghost sm" data-act="edit" data-id="'+l.id+'">✎ Sửa</button><button class="btn ghost sm" data-act="del" data-id="'+l.id+'">🗑</button>';
-  if(a)h+='<div class="acts">'+a+'</div>';
-  return h+'</div>';
+  if(canFixPin(p))a+='<button class="btn ok sm" data-pact="fix" data-id="'+p.id+'">✓ Báo đã khắc phục</button>';
+  if(canVerifyPin(p))a+='<button class="btn ok sm" data-pact="vok" data-id="'+p.id+'">✔ Duyệt</button><button class="btn bad sm" data-pact="vno" data-id="'+p.id+'">✖ Trả lại</button>';
+  if(canDailyPin(p))a+='<button class="btn sm" data-pact="daily" data-id="'+p.id+'">📋 Kiểm tra duy trì hôm nay</button>';
+  if(isEHS())a+='<button class="btn ghost sm" data-pact="edit" data-id="'+p.id+'">✎ Sửa</button><button class="btn ghost sm" data-pact="del" data-id="'+p.id+'">🗑</button>';
+  if(a)h+='<div class="acts">'+a+"</div>";
+  return h+"</div>";
 }
 
 /* ---------- báo cáo ---------- */
@@ -366,47 +386,44 @@ function calc(scope){
   const subs=SUBJ.filter(s=>scope==="all"||(scope==="M"&&s.kind==="M")||(scope==="F"&&s.kind==="F"));
   const set=new Set(subs.map(s=>s.sid));
   const L=S.locs.filter(l=>set.has(l.sid));
-  const R={subs,L,t:L.length,o:0,r:0,v:0,surveyed:0,na:0,unsurveyed:[],byPart:{},byGroup:{},bySubj:[],rounds:{}};
-  L.forEach(l=>{R[{open:"o",reported:"r",verified:"v"}[l.status]]++;});
-  const bump=(m,k,l)=>{const x=m[k]||(m[k]={t:0,o:0,r:0,v:0});x.t++;x[{open:"o",reported:"r",verified:"v"}[l.status]]++;};
-  L.forEach(l=>{bump(R.byPart,l.owner_part||"(chưa gán)",l);bump(R.byGroup,BY[l.sid].g,l);});
-  subs.forEach(s=>{const st=stat(s.sid);if(st.na)R.na++;else if(st.t)R.surveyed++;else R.unsurveyed.push(s);R.bySubj.push({s,st});});
-  S.events.filter(e=>set.has(e.sid)).forEach(e=>{const x=R.rounds[e.round]||(R.rounds[e.round]={create:0,report_ok:0,verify:0,reject:0,reopen:0});if(x[e.action]!=null)x[e.action]++;});
+  const pins=allPins().filter(p=>p.items.some(it=>set.has(it.sid)));
+  const R={subs,L,pins,it:{t:L.length,o:0,r:0,v:0},pn:{t:pins.length,o:0,r:0,v:0},byPart:{},byGroup:{},missing:[]};
+  L.forEach(l=>{R.it[{open:"o",reported:"r",verified:"v"}[l.status]]++;});
+  pins.forEach(p=>{R.pn[{open:"o",reported:"r",verified:"v"}[p.status]]++;});
+  const bump=(m,k,p)=>{const x=m[k]||(m[k]={t:0,o:0,r:0,v:0,it:0});x.t++;x[{open:"o",reported:"r",verified:"v"}[p.status]]++;x.it+=p.items.length;};
+  pins.forEach(p=>{bump(R.byPart,p.owner_part||"(chưa gán)",p);bump(R.byGroup,p.kind==="F"?"F":p.g,p);});
+  subs.forEach(s=>{if(!S.locs.some(l=>l.sid===s.sid))R.missing.push(s);});
   return R;
 }
 function renderReport(){
   const R=calc(SCOPE);
   let h=roundBanner();
   h+='<div class="bar"><select class="inp" id="scope" style="max-width:260px">'+[["all","Phạm vi: 80 mục + 12 lỗi cũ"],["M","Chỉ 80 mục check list"],["F","Chỉ 12 lỗi lần trước"]].map(o=>'<option value="'+o[0]+'"'+(SCOPE===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+'</select><button class="btn ghost sm" id="btnXls">⬇ Xuất Excel</button></div>';
-  h+='<div class="kpis"><div class="kpi"><b>'+R.t+'</b><span>Điểm kiểm soát (mẫu số)</span></div><div class="kpi"><b style="color:#1D4ED8">'+(R.r+R.v)+'</b><span>Đã khắc phục · '+pc(R.r+R.v,R.t)+'%</span></div><div class="kpi"><b style="color:var(--pass)">'+R.v+'</b><span>Đang duy trì · '+pc(R.v,R.t)+'%</span></div><div class="kpi"><b style="color:var(--fail)">'+R.o+'</b><span>Chờ khắc phục</span></div><div class="kpi"><b>'+new Set(R.L.filter(l=>l.pin_id&&l.x!=null).map(l=>l.pin_id)).size+'</b><span>Điểm trên sơ đồ</span></div><div class="kpi"><b>'+(R.surveyed+R.na)+"/"+R.subs.length+'</b><span>Mục đã rà soát (gồm '+R.na+' N/A)</span></div></div>';
-  const tr=(name,x)=>'<tr><td>'+esc(name)+'</td><td class="n">'+x.t+'</td><td class="n">'+(x.r+x.v)+'</td><td class="n">'+x.v+'</td><td class="n">'+x.o+'</td><td class="n">'+pc(x.r+x.v,x.t)+'%</td><td class="n">'+pc(x.v,x.t)+"%</td></tr>";
-  const head='<tr><th>{0}</th><th class="n">Vị trí</th><th class="n">Báo OK</th><th class="n">Xác nhận</th><th class="n">Còn tồn</th><th class="n">% báo</th><th class="n">% xác nhận</th></tr>';
-  h+='<h3 class="sec">Tiến độ rà soát theo nhóm</h3><table><tr><th>Nhóm</th><th class="n">Mục</th><th class="n">Đã rà soát</th><th class="n">N/A</th><th class="n">Chưa</th><th class="n">Vị trí</th></tr>'+Object.keys(GROUPS).map(g=>{const xs=R.bySubj.filter(x=>x.s.g===g);if(!xs.length)return"";const d=xs.filter(x=>x.st.t>0).length,na=xs.filter(x=>x.st.na).length;return"<tr><td>"+g+" · "+GROUPS[g].n+'</td><td class="n">'+xs.length+'</td><td class="n">'+d+'</td><td class="n">'+na+'</td><td class="n">'+(xs.length-d-na)+'</td><td class="n">'+xs.reduce((a,x)=>a+x.st.t,0)+"</td></tr>";}).join("")+"</table>";
-  h+='<h3 class="sec">Theo Part phụ trách</h3><table>'+head.replace("{0}","Part")+Object.keys(R.byPart).sort().map(k=>tr(k,R.byPart[k])).join("")+"</table>";
-  h+='<h3 class="sec">Theo nhóm</h3><table>'+head.replace("{0}","Nhóm")+Object.keys(R.byGroup).sort().map(k=>tr(k+" · "+GROUPS[k].n,R.byGroup[k])).join("")+"</table>";
-  const rk=Object.keys(R.rounds).sort((a,b)=>a-b);
-  h+='<h3 class="sec">Theo lượt</h3><table><tr><th>Lượt</th><th class="n">Rà soát thêm vị trí</th><th class="n">Báo OK</th><th class="n">EHS xác nhận</th><th class="n">Từ chối</th></tr>'+(rk.map(k=>'<tr><td>Lượt '+k+'</td><td class="n">'+R.rounds[k].create+'</td><td class="n">'+R.rounds[k].report_ok+'</td><td class="n">'+R.rounds[k].verify+'</td><td class="n">'+R.rounds[k].reject+"</td></tr>").join("")||'<tr><td colspan="5">Chưa có dữ liệu</td></tr>')+"</table>";
-  const top=R.bySubj.filter(x=>x.st.o+x.st.r>0).sort((a,b)=>(b.st.o+b.st.r)-(a.st.o+a.st.r)).slice(0,15);
-  h+='<h3 class="sec">Mục còn tồn nhiều nhất</h3><table><tr><th>Mục</th><th class="n">Còn tồn</th><th class="n">Tổng</th></tr>'+(top.map(x=>"<tr><td>"+x.s.label+" "+esc(x.s.title)+'</td><td class="n">'+(x.st.o+x.st.r)+'</td><td class="n">'+x.st.t+"</td></tr>").join("")||'<tr><td colspan="3">Không còn</td></tr>')+"</table>";
-  h+='<h3 class="sec">Mục chưa rà soát ('+R.unsurveyed.length+")</h3>"+(R.unsurveyed.length?'<div class="note">'+R.unsurveyed.map(s=>s.label).join(", ")+"</div>":'<div class="note">Đã rà soát hết.</div>');
+  h+='<div class="kpis"><div class="kpi"><b>'+R.pn.t+'</b><span>Điểm kiểm soát</span></div><div class="kpi"><b style="color:var(--pass)">'+R.pn.v+'</b><span>Điểm đang duy trì · '+pc(R.pn.v,R.pn.t)+'%</span></div><div class="kpi"><b style="color:var(--fail)">'+R.pn.o+'</b><span>Điểm chờ khắc phục</span></div><div class="kpi"><b>'+R.it.t+'</b><span>Hạng mục kiểm soát</span></div><div class="kpi"><b style="color:var(--pass)">'+R.it.v+'</b><span>Hạng mục duy trì · '+pc(R.it.v,R.it.t)+'%</span></div><div class="kpi"><b style="color:var(--fail)">'+R.it.o+'</b><span>Hạng mục chờ khắc phục</span></div></div>';
+  const tr=(name,x)=>'<tr><td>'+esc(name)+'</td><td class="n">'+x.t+'</td><td class="n">'+x.it+'</td><td class="n">'+x.v+'</td><td class="n">'+x.r+'</td><td class="n">'+x.o+'</td><td class="n">'+pc(x.v,x.t)+"%</td></tr>";
+  const head='<tr><th>{0}</th><th class="n">Điểm</th><th class="n">Hạng mục</th><th class="n">Duy trì</th><th class="n">Chờ duyệt</th><th class="n">Chờ KP</th><th class="n">% duy trì</th></tr>';
+  h+='<h3 class="sec">Theo bộ phận</h3><table>'+head.replace("{0}","Bộ phận")+Object.keys(R.byPart).sort().map(k=>tr(k,R.byPart[k])).join("")+"</table>";
+  h+='<h3 class="sec">Theo nhóm</h3><table>'+head.replace("{0}","Nhóm")+Object.keys(R.byGroup).sort().map(k=>tr(k==="F"?"Lỗi cũ":k+" · "+GROUPS[k].n,R.byGroup[k])).join("")+"</table>";
+  const top=R.pins.filter(p=>p.status!=="verified").sort((a,b)=>b.items.length-a.items.length).slice(0,15);
+  h+='<h3 class="sec">Điểm còn tồn</h3><table><tr><th>Địa điểm</th><th>Nhóm</th><th class="n">Hạng mục</th><th>Trạng thái</th></tr>'+(top.map(p=>"<tr><td>"+esc(p.zone)+'</td><td>'+(p.kind==="F"?"Lỗi cũ":p.g)+'</td><td class="n">'+p.items.length+'</td><td>'+STN[p.status]+"</td></tr>").join("")||'<tr><td colspan="4">Không còn</td></tr>')+"</table>";
+  h+='<h3 class="sec">Hạng mục chưa có điểm ('+R.missing.length+")</h3>"+(R.missing.length?'<div class="note">'+R.missing.map(s=>s.label).join(", ")+"</div>":'<div class="note">Đã phủ hết.</div>');
   return h;
 }
 function exportXls(){
-  const R=calc(SCOPE);const wb=XLSX.utils.book_new();
-  const add=(n,a)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a),n);
-  add("Theo mục",[["Mã","Nhóm","Hạng mục","Nội dung","Bộ phận","Tổng vị trí","Báo OK","Xác nhận","Còn tồn","N/A"]].concat(R.bySubj.map(x=>[x.s.label,x.s.g,x.s.title,x.s.desc,x.s.bp,x.st.t,x.st.r+x.st.v,x.st.v,x.st.o,x.st.na?"N/A":""])));
-  add("Vị trí chi tiết",[["Mã","Hạng mục","Khu vực","Mô tả","Part","Trạng thái","Lượt rà soát","Tọa độ X","Tọa độ Y","Người rà soát","Người báo OK","Lượt báo","Thời gian báo","EHS xác nhận","Lý do trả lại"]].concat(R.L.map(l=>[BY[l.sid].label,BY[l.sid].title,l.zone,l.detail,l.owner_part,STN[l.status],l.created_round,l.x==null?"":+l.x,l.y==null?"":+l.y,l.created_by,l.reported_by||"",l.reported_round||"",l.reported_at?fdt(l.reported_at):"",l.verified_by||"",l.reject_note||""])));
-  const pr=o=>Object.keys(o).sort().map(k=>[k,o[k].t,o[k].r+o[k].v,o[k].v,o[k].o,pc(o[k].r+o[k].v,o[k].t)/100,pc(o[k].v,o[k].t)/100]);
-  const ph=["","Vị trí","Báo OK","Xác nhận","Còn tồn","% báo","% xác nhận"];
-  add("Theo Part",[ph].concat(pr(R.byPart)));add("Theo nhóm",[ph].concat(pr(R.byGroup)));
-  XLSX.writeFile(wb,"VT001_BaoCao_Luot"+S.round+"_"+new Date().toISOString().slice(0,10)+".xlsx");
+  const R=calc(SCOPE);const wb=XLSX.utils.book_new();const add=(n,a)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a),n);
+  add("Điểm",[["Địa điểm","Nhóm","Bộ phận","Số hạng mục","Trạng thái","Lập bởi","Thời gian"]].concat(R.pins.map(p=>[p.zone,p.kind==="F"?"Lỗi cũ":p.g,p.owner_part,p.items.length,STN[p.status],p.created_by,fdt(p.created_at)])));
+  add("Hạng mục chi tiết",[["Địa điểm","Nhóm","Mã","Hạng mục","Nội dung","Bộ phận","Trạng thái","Người khắc phục","Thời gian KP","EHS duyệt"]].concat(R.L.map(l=>{const pn=allPins().find(p=>p.items.some(x=>x.id===l.id))||{};return [l.zone,BY[l.sid].kind==="F"?"Lỗi cũ":BY[l.sid].g,BY[l.sid].label,BY[l.sid].title,BY[l.sid].desc,l.owner_part,STN[l.status],l.reported_by||"",l.reported_at?fdt(l.reported_at):"",l.verified_by||""];})));
+  const pr=o=>Object.keys(o).sort().map(k=>[k,o[k].t,o[k].it,o[k].v,o[k].r,o[k].o,pc(o[k].v,o[k].t)/100]);
+  const ph=["","Điểm","Hạng mục","Duy trì","Chờ duyệt","Chờ KP","% duy trì"];
+  add("Theo bộ phận",[ph].concat(pr(R.byPart)));add("Theo nhóm",[ph].concat(pr(R.byGroup)));
+  XLSX.writeFile(wb,"VT001_BaoCao_"+new Date().toISOString().slice(0,10)+".xlsx");
 }
 
 /* ---------- cài đặt ---------- */
 function renderSettings(){
   const link=location.origin+location.pathname+"?mode=report";
   return'<div class="note" style="margin-bottom:8px">Ảnh luôn bắt buộc: khi lập điểm, khi khắc phục, và khi báo NG lúc duy trì.</div>'
-  +'<h3 class="sec" style="margin-top:0">PIC EHS (xác nhận &amp; rà soát)</h3><div class="note">Tài khoản role admin của web Audit luôn là EHS.</div><div id="ehsList">'+S.ehs.map(n=>'<div class="row" style="margin:4px 0"><span style="flex:1">'+esc(n)+'</span><button class="btn ghost sm" data-ehsdel="'+esc(n)+'">Gỡ</button></div>').join("")+'</div><div class="row"><select class="inp" id="ehsAdd" style="flex:1"><option value="">— Thêm PIC EHS —</option></select><button class="btn sm" id="ehsAddBtn">Thêm</button></div>'
+  +'<h3 class="sec" style="margin-top:0">PIC EHS (lập điểm &amp; duyệt)</h3><div class="note">Tài khoản role admin của web Audit luôn là EHS.</div><div id="ehsList">'+S.ehs.map(n=>'<div class="row" style="margin:4px 0"><span style="flex:1">'+esc(n)+'</span><button class="btn ghost sm" data-ehsdel="'+esc(n)+'">Gỡ</button></div>').join("")+'</div><div class="row"><select class="inp" id="ehsAdd" style="flex:1"><option value="">— Thêm PIC EHS —</option></select><button class="btn sm" id="ehsAddBtn">Thêm</button></div>'
   +'<h3 class="sec">Link xem báo cáo (không cần đăng nhập)</h3><input class="inp" readonly value="'+esc(link)+'" onclick="this.select()">';
 }
 
@@ -414,9 +431,7 @@ function renderSettings(){
 let CUR=null;
 function bindMain(){
   const m=$("main");
-  m.querySelectorAll("[data-pin]").forEach(b=>b.onclick=()=>addPointDialog(b.dataset.pin));
-  m.querySelectorAll("[data-na]").forEach(b=>b.onclick=()=>call("vt_set_na",{p_sid:b.dataset.na,p_na:true},"Đã đánh dấu N/A"));
-  m.querySelectorAll("[data-naoff]").forEach(b=>b.onclick=()=>call("vt_set_na",{p_sid:b.dataset.naoff,p_na:false},"Đã bỏ N/A"));
+  const ap=$("addPin");if(ap)ap.onclick=()=>addPinDialog(curBucket());
   const fq=$("fq");if(fq)fq.oninput=()=>{FILT.q=fq.value;const p=fq.selectionStart;render();const n=$("fq");n.focus();n.setSelectionRange(p,p);};
   m.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{FILT.g=b.dataset.g;FILT.q="";render();window.scrollTo(0,0);});
   const sc=$("scope");if(sc)sc.onchange=()=>{SCOPE=sc.value;render();};
@@ -424,17 +439,18 @@ function bindMain(){
   const mp=$("mp");if(mp)mp.onchange=()=>{MF.part=mp.value;render();};
   const ms=$("ms");if(ms)ms.onchange=()=>{MF.st=ms.value;render();};
   const mz=$("mz");if(mz)mz.onclick=()=>{MAPZ=MAPZ>1?1:2.6;render();};
-  m.querySelectorAll(".pin").forEach(e=>e.onclick=()=>openPoint(e.dataset.pt));
+  m.querySelectorAll(".pin").forEach(e=>e.onclick=()=>openPin(e.dataset.pid));
+  m.querySelectorAll("[data-pact]").forEach(b=>b.onclick=e=>{e.stopPropagation();pinAct(b.dataset.pact,b.dataset.id);});
   const bx=$("btnXls");if(bx)bx.onclick=exportXls;
   bindActs(m);
   if(TAB==="set")bindSettings();
 }
 function bindActs(root){
-  root.querySelectorAll("[data-act]").forEach(b=>b.onclick=e=>{e.stopPropagation();act(b.dataset.act,b.dataset.id);});
+  root.querySelectorAll("[data-pact]").forEach(b=>b.onclick=e=>{e.stopPropagation();pinAct(b.dataset.pact,b.dataset.id);});
   root.querySelectorAll("img[data-zoom]").forEach(i=>i.onclick=e=>{e.stopPropagation();window.open(i.src,"_blank");});
 }
 async function bindSettings(){
-    document.querySelectorAll("[data-ehsdel]").forEach(b=>b.onclick=()=>{if(confirm("Gỡ "+b.dataset.ehsdel+" khỏi PIC EHS?"))call("vt_set_ehs",{p_name:b.dataset.ehsdel,p_on:false},"Đã gỡ");});
+  document.querySelectorAll("[data-ehsdel]").forEach(b=>b.onclick=()=>{if(confirm("Gỡ "+b.dataset.ehsdel+" khỏi PIC EHS?"))call("vt_set_ehs",{p_name:b.dataset.ehsdel,p_on:false},"Đã gỡ");});
   try{const names=await rpc("list_user_names",{});const s=$("ehsAdd");(names||[]).filter(n=>!S.ehs.includes(n)).forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;s.appendChild(o);});}catch(e){}
   $("ehsAddBtn").onclick=()=>{const v=$("ehsAdd").value;if(v)call("vt_set_ehs",{p_name:v,p_on:true},"Đã thêm");};
 }
@@ -442,22 +458,11 @@ async function bindSettings(){
 /* ---------- modal ---------- */
 function openModal(html){$("modal").innerHTML='<div class="ovl"><div class="sheet">'+html+"</div></div>";$("modal").querySelector(".ovl").onclick=e=>{if(e.target.classList.contains("ovl"))closeModal();};const x=$("modal").querySelector(".x");if(x)x.onclick=closeModal;}
 function closeModal(){$("modal").innerHTML="";CUR=null;CURPIN=null;PH={};}
-function openSubject(sid,keepScroll){
-  CUR=sid;const s=BY[sid],st=stat(sid),L=locsOf(sid);
-  const sheet=$("modal").querySelector(".sheet");const sc=sheet?sheet.scrollTop:0;
-  let h='<button class="x">Đóng</button><h2><span class="no">'+s.label+"</span> "+esc(s.title)+'</h2><div class="meta"><span class="gb">'+s.g+" · "+GROUPS[s.g].n+"</span><span>BP: "+esc(s.bp)+"</span>"+stLabel(st)+"</div>";
-  h+='<p style="margin:8px 0;font-size:14px">'+esc(s.desc)+"</p>";
-  if(s.typ)h+='<div class="banner">'+(s.typ==="all"?"Lỗi về sắp xếp/bố trí: kiểm tra <b>toàn bộ line / khu vực</b>, ghi từng vị trí còn tồn tại.":"Kiểm tra lại vị trí cũ <b>và các vị trí có lỗi tương tự</b>.")+"</div>";
-  if(isEHS()){h+='<div class="row" style="margin:8px 0"><button class="btn sm" id="bPin">📍 Ghim vị trí NG trên bản đồ</button>'+(st.na?'<button class="btn ghost sm" id="bNaOff">Bỏ N/A</button>':(st.t?"":'<button class="btn ghost sm" id="bNa">Không có vị trí (N/A)</button>'))+"</div>";}
-  if(!L.length)h+='<div class="note" style="margin:10px 0">'+(st.na?"PIC EHS đã xác nhận mục này không có vị trí liên quan.":"Chưa có vị trí nào được ghi nhận.")+"</div>";
-  h+=L.map(l=>locCard(l,false)).join("");
-  openModal(h);
-  const md=$("modal");bindActs(md);
-  const q=id=>md.querySelector("#"+id);
-  if(q("bPin"))q("bPin").onclick=()=>pinDialog(sid);
-  if(q("bNa"))q("bNa").onclick=()=>call("vt_set_na",{p_sid:sid,p_na:true},"Đã đánh dấu N/A");
-  if(q("bNaOff"))q("bNaOff").onclick=()=>call("vt_set_na",{p_sid:sid,p_na:false},"Đã bỏ N/A");
-  if(keepScroll){const n=md.querySelector(".sheet");if(n)n.scrollTop=sc;}
+function openPin(id,keep){
+  const p=pinById(id);if(!p){closeModal();return;}
+  CURPIN=id;const sh=$("modal").querySelector(".sheet"),sc=sh?sh.scrollTop:0;
+  openModal('<button class="x">Đóng</button>'+pinCard(p));bindActs($("modal"));
+  if(keep){const n=$("modal").querySelector(".sheet");if(n)n.scrollTop=sc;}
 }
 
 /* ảnh */
@@ -466,86 +471,96 @@ function compress(file){return new Promise((res,rej)=>{const r=new FileReader();
 function bindPhotos(root){root.querySelectorAll("input[data-ph]").forEach(i=>i.onchange=async()=>{const f=i.files[0];if(!f)return;try{const b=await compress(f);PH[i.dataset.ph]=b;const p=root.querySelector("#pv_"+i.dataset.ph);if(p)p.innerHTML='<img src="'+URL.createObjectURL(b)+'" alt="">';}catch(e){toast("Không đọc được ảnh",true);}});}
 async function upPhoto(id){const b=PH[id];if(!b)return null;const path="vt/"+Date.now()+"_"+Math.random().toString(36).slice(2,8)+".jpg";const r=await sb.storage.from("photos").upload(path,b,{contentType:"image/jpeg",upsert:false});if(r.error)throw new Error("Không tải được ảnh: "+r.error.message);return sb.storage.from("photos").getPublicUrl(path).data.publicUrl;}
 
-/* thao tác */
-function act(a,id){
-  const l=S.locs.find(x=>x.id===id);if(!l)return;
-  if(a==="fix")reportDialog(l);
-  else if(a==="daily")dailyDialog(l);
-  else if(a==="vok")call("vt_verify",{p_loc:id,p_ok:true,p_note:null},"Đã duyệt · chuyển sang duy trì");
-  else if(a==="vno")noteDialog("Trả lại điểm","Lý do trả lại (bộ phận sẽ thấy)","vt_verify",{p_loc:id,p_ok:false},"Đã trả lại");
-  else if(a==="reopen")noteDialog("Phát hiện lại vấn đề","Lý do mở lại","vt_reopen",{p_loc:id},"Đã mở lại");
-  else if(a==="del"){if(confirm("Xóa điểm kiểm soát này?"))call("vt_remove_location",{p_loc:id,p_note:null},"Đã xóa");}
-  else if(a==="edit")editDialog(l);
+/* thao tác điểm */
+function pinAct(a,id){
+  const p=pinById(id);if(!p)return;
+  if(a==="fix")pinFixDialog(p);
+  else if(a==="daily")pinDailyDialog(p);
+  else if(a==="vok")call("vt_pin_verify",{p_pin:id,p_ok:true,p_note:null},"Đã duyệt · chuyển sang duy trì");
+  else if(a==="vno")noteDialog("Trả lại điểm","Lý do (bộ phận sẽ thấy)","vt_pin_verify",{p_pin:id,p_ok:false},"Đã trả lại");
+  else if(a==="del"){if(confirm("Xóa cả điểm '"+p.zone+"' ("+p.items.length+" hạng mục)?"))call("vt_remove_pin",{p_pin:id},"Đã xóa điểm");}
+  else if(a==="edit")pinEditDialog(p);
 }
 function sub(title,body,onOk,okLabel){
-  const back=CUR;const keep=$("modal").innerHTML;
   const box=document.createElement("div");box.className="ovl";box.style.zIndex=60;
   box.innerHTML='<div class="sheet"><button class="x">Hủy</button><h2>'+title+"</h2>"+body+'<div id="subErr" class="err hidden" style="margin-top:8px"></div><div class="row" style="margin-top:12px"><button class="btn" id="subOk">'+(okLabel||"Lưu")+"</button></div></div>";
-  document.body.appendChild(box);
-  const close=()=>box.remove();
-  box.querySelector(".x").onclick=close;
-  bindPhotos(box);
-  box.querySelectorAll(".sw input").forEach(i=>i.onchange=()=>box.querySelectorAll(".sw label").forEach(l=>l.classList.toggle("on",l.querySelector("input").checked)));
+  document.body.appendChild(box);const close=()=>box.remove();box.querySelector(".x").onclick=close;bindPhotos(box);
   box.querySelector("#subOk").onclick=async()=>{const b=box.querySelector("#subOk");b.disabled=true;const old=b.textContent;b.textContent="Đang lưu…";try{const ok=await onOk(box);if(ok!==false)close();}catch(e){const er=box.querySelector("#subErr");er.textContent=e.message;er.classList.remove("hidden");}finally{b.disabled=false;b.textContent=old;}};
   return box;
 }
 async function direct(fn,args,msg){const r=await rpc(fn,Object.assign({p_token:SES&&SES.token},args));await reload();if(msg)toast(msg);return r;}
-function reportDialog(l){
-  sub("Báo đã khắc phục — "+esc(l.zone),'<div class="note" style="margin:6px 0">'+esc(BY[l.sid].title)+(l.detail?" · "+esc(l.detail):"")+'</div>'+photoBox("rp","📷 Ảnh sau khi khắc phục — BẮT BUỘC, chụp từ điện thoại")+'<label class="f" style="margin-top:8px">Ghi chú<textarea class="inp" id="rn" placeholder="Đã khắc phục như thế nào…"></textarea></label>',async box=>{
-    if(!PH.rp)throw new Error("Bắt buộc chụp ảnh sau khi khắc phục (chụp từ điện thoại)");
-    const url=await upPhoto("rp");
-    await direct("vt_report_ok",{p_loc:l.id,p_photo:url,p_note:box.querySelector("#rn").value.trim()||null},isEHS()?"Đã khắc phục · chuyển sang duy trì":"Đã báo khắc phục, chờ PIC EHS duyệt");PH={};},"Xác nhận đã khắc phục");
-}
-function noteDialog(title,label,fn,args,msg){
-  sub(title,'<label class="f">'+label+'<textarea class="inp" id="nt"></textarea></label>',async box=>{const v=box.querySelector("#nt").value.trim();if(!v)throw new Error("Cần nhập lý do");await direct(fn,Object.assign({},args,{p_note:v}),msg);},"Gửi");
-}
+function noteDialog(title,label,fn,args,msg){sub(title,'<label class="f">'+label+'<textarea class="inp" id="nt"></textarea></label>',async box=>{const v=box.querySelector("#nt").value.trim();if(!v)throw new Error("Cần nhập lý do");await direct(fn,Object.assign({},args,{p_note:v}),msg);},"Gửi");}
 function partSel(id,val){return'<select class="inp" id="'+id+'"><option value="">(chưa gán)</option>'+PARTS.map(p=>'<option'+(p===val?" selected":"")+">"+p+"</option>").join("")+"</select>";}
-function editDialog(l){
-  sub("Sửa điểm kiểm soát",'<label class="f">Line / Khu vực'+zoneSelect("ez")+'</label><input class="inp" id="ezo" placeholder="Tên khu vực khác" style="margin-top:6px;display:'+(resolveZone(l.zone)?"none":"")+'" value="'+(resolveZone(l.zone)?"":esc(l.zone))+'"><label class="f" style="margin-top:8px">Mô tả<textarea class="inp" id="ed">'+esc(l.detail)+'</textarea></label><label class="f" style="margin-top:8px">Giao bộ phận'+partSel("eo",l.owner_part)+'</label>',async box=>{let z=box.querySelector("#ez").value;if(z==="__other"||!z)z=box.querySelector("#ezo").value.trim();if(!z)throw new Error("Chọn khu vực");await direct("vt_edit_location",{p_loc:l.id,p_zone:z,p_detail:box.querySelector("#ed").value,p_owner:box.querySelector("#eo").value},"Đã lưu");},"Lưu");
-  const ez=document.querySelectorAll("#ez");const e=ez[ez.length-1];if(e){e.value=resolveZone(l.zone)?l.zone:"__other";e.onchange=()=>{const o=e.parentNode.parentNode.querySelector("#ezo");if(o)o.style.display=(e.value==="__other")?"":"none";};}
-}
-/* ---------- thêm điểm kiểm soát ---------- */
 function zoneSelect(id){return'<select class="inp" id="'+id+'"><option value="">— Chọn Line / Khu vực —</option>'+Object.keys(LINE_OPTS).map(g=>'<optgroup label="'+esc(g)+'">'+LINE_OPTS[g].map(z=>"<option>"+esc(z)+"</option>").join("")+"</optgroup>").join("")+'<option value="__other">Khác (không có trên sơ đồ)</option></select>';}
-function addPointDialog(sid){
-  const s=BY[sid];
-  const h='<div class="note">'+esc(s.title)+" — "+esc(s.desc.slice(0,150))+'</div>'
-   +'<label class="f" style="margin-top:8px">Line / Khu vực'+zoneSelect("pz")+'</label>'
-   +'<input class="inp" id="pzo" placeholder="Tên khu vực khác" style="margin-top:6px;display:none">'
-   +'<label class="f" style="margin-top:8px">Mô tả yếu tố cần kiểm soát tại vị trí này<textarea class="inp" id="zd"></textarea></label>'
-   +'<label class="f" style="margin-top:8px">Giao bộ phận phụ trách'+partSel("zo",guessPart(s.bp))+'</label>'
+function chkList(items,sel){return'<input class="inp cksrch" placeholder="Lọc hạng mục…" style="margin-bottom:6px"><div class="ckl">'+items.map(it=>'<label class="ckrow" data-t="'+esc((it.title+" "+it.short).toLowerCase())+'"><input type="checkbox" value="'+it.sid+'"'+(sel&&sel.has(it.sid)?" checked":"")+'><span class="ckt"><b>'+it.label+'</b> '+esc(it.short)+'</span></label>').join("")+"</div>";}
+function bindChk(box){const s=box.querySelector(".cksrch");if(s)s.oninput=()=>{const q=s.value.toLowerCase();box.querySelectorAll(".ckrow").forEach(r=>{r.style.display=r.dataset.t.includes(q)?"":"none";});};}
+function addPinDialog(bucket){
+  const items=bucketItems(bucket);
+  const h='<label class="f">Line / Khu vực'+zoneSelect("pz")+'</label><input class="inp" id="pzo" placeholder="Tên khu vực khác" style="margin-top:6px;display:none">'
+   +'<label class="f" style="margin-top:8px">Giao bộ phận phụ trách'+partSel("zo","")+'</label>'
+   +'<div class="f" style="margin-top:10px">Tích các hạng mục cần kiểm soát tại địa điểm này</div>'+chkList(items,null)
    +photoBox("ad","📷 Ảnh hiện trạng — BẮT BUỘC, chụp từ điện thoại");
-  const box=sub("➕ Thêm điểm kiểm soát",h,async bx=>{
-    let zone=bx.querySelector("#pz").value;
-    if(zone==="__other")zone=bx.querySelector("#pzo").value.trim();
+  const box=sub("➕ Thêm điểm — "+(bucket==="F"?"12 lỗi cũ":"Nhóm "+bucket+" · "+GROUPS[bucket].n),h,async bx=>{
+    let zone=bx.querySelector("#pz").value;if(zone==="__other")zone=bx.querySelector("#pzo").value.trim();
     if(!zone)throw new Error("Chọn Line / Khu vực");
+    const sids=[...bx.querySelectorAll(".ckl input:checked")].map(i=>i.value);
+    if(!sids.length)throw new Error("Tích ít nhất 1 hạng mục");
     if(!PH.ad)throw new Error("Bắt buộc chụp ảnh hiện trạng (chụp từ điện thoại)");
-    const url=await upPhoto("ad");
-    const r=await direct("vt_add_pin",{p_pin:null,p_zone:zone,p_x:null,p_y:null,p_items:[{sid,detail:bx.querySelector("#zd").value.trim(),owner_part:bx.querySelector("#zo").value,photo:url,note:""}]});
-    toast(r&&r.n?"Đã thêm điểm kiểm soát · tiếp tục thêm vị trí khác của mục này":"Đã có vị trí này",!(r&&r.n));
-    PH={};bx.querySelector("#zd").value="";const pv=bx.querySelector("#pv_ad");if(pv)pv.innerHTML="";const fi=bx.querySelector("input[data-ph=ad]");if(fi)fi.value="";return false;
-  },"Lưu điểm");
+    const url=await upPhoto("ad");const owner=bx.querySelector("#zo").value;
+    const r=await direct("vt_add_pin",{p_pin:null,p_zone:zone,p_x:null,p_y:null,p_items:sids.map(sid=>({sid,detail:"",owner_part:owner,photo:url,note:""}))});
+    toast("Đã tạo điểm với "+((r&&r.n!=null)?r.n:sids.length)+" hạng mục");PH={};
+  },"Tạo điểm");
   const zs=box.querySelector("#pz");zs.onchange=()=>{box.querySelector("#pzo").style.display=zs.value==="__other"?"":"none";};
+  bindChk(box);
 }
-function dailyDialog(l){
-  sub("📋 Kiểm tra duy trì hôm nay — "+esc(l.zone),'<div class="note" style="margin-bottom:6px">'+esc(BY[l.sid].title)+(l.detail?" · "+esc(l.detail):"")+'</div>'
-   +'<div class="f">Kết quả hôm nay</div><div class="sw" style="margin-bottom:4px"><label class="on"><input type="radio" name="dr" value="ok" checked>OK (đạt)</label><label><input type="radio" name="dr" value="ng">NG (không đạt)</label></div>'
-   +photoBox("dp","📷 Ảnh — BẮT BUỘC khi NG, chụp từ điện thoại")
-   +'<label class="f" style="margin-top:8px">Ghi chú<textarea class="inp" id="dn"></textarea></label>',async box=>{
-    const res=box.querySelector("input[name=dr]:checked").value;
-    if(res==="ng"&&!PH.dp)throw new Error("Báo NG bắt buộc có ảnh chụp từ điện thoại");
+function pinFixDialog(p){
+  const nopen=p.items.filter(x=>x.status==="open").length;
+  sub("Báo đã khắc phục — "+esc(p.zone),'<div class="note" style="margin-bottom:6px">'+nopen+' hạng mục chờ khắc phục tại điểm này</div>'+photoBox("rp","📷 Ảnh sau khắc phục — BẮT BUỘC, chụp từ điện thoại")+'<label class="f" style="margin-top:8px">Ghi chú<textarea class="inp" id="rn"></textarea></label>',async box=>{
+    if(!PH.rp)throw new Error("Bắt buộc ảnh sau khắc phục (chụp từ điện thoại)");
+    const url=await upPhoto("rp");
+    await direct("vt_pin_report",{p_pin:p.id,p_photo:url,p_note:box.querySelector("#rn").value.trim()||null},isEHS()?"Đã khắc phục & duyệt":"Đã báo khắc phục, chờ EHS duyệt");PH={};},"Xác nhận");
+}
+function pinDailyDialog(p){
+  const vs=p.items.filter(x=>x.status==="verified");
+  const rows=vs.map(l=>{const s=BY[l.sid];return '<div class="dchk" data-id="'+l.id+'" data-sid="'+l.sid+'" data-state=""><div class="ditx"><span class="pno">'+s.label+'</span> '+esc(s.short)+'</div><div class="seg"><button type="button" class="segbtn segok">OK</button><button type="button" class="segbtn segng">NG</button></div></div>';}).join("");
+  const h='<div class="row" style="margin-bottom:6px;align-items:center"><button type="button" class="btn ghost sm" id="allok">✓ Tất cả OK</button><span class="note">Mỗi hạng mục phải chọn OK hoặc NG</span></div><div class="dlist">'+rows+'</div>'+photoBox("dp","📷 Ảnh — BẮT BUỘC nếu có NG, chụp từ điện thoại")+'<label class="f" style="margin-top:8px">Ghi chú<textarea class="inp" id="dn"></textarea></label>';
+  const box=sub("📋 Duy trì hôm nay — "+esc(p.zone),h,async bx=>{
+    const chk=[...bx.querySelectorAll(".dchk")];
+    if(chk.some(d=>!d.dataset.state))throw new Error("Còn hạng mục chưa chọn OK hoặc NG");
+    const ngSids=chk.filter(d=>d.dataset.state==="ng").map(d=>d.dataset.sid);
+    if(ngSids.length&&!PH.dp)throw new Error("Có NG thì bắt buộc ảnh chụp điện thoại");
     let url=null;if(PH.dp)url=await upPhoto("dp");
-    await direct("vt_daily_check",{p_loc:l.id,p_result:res,p_photo:url,p_note:box.querySelector("#dn").value.trim()||null},res==="ok"?"Đã ghi nhận duy trì OK":"Đã ghi NG — chuyển lại chờ khắc phục");PH={};},"Lưu kết quả");
+    await direct("vt_pin_daily",{p_pin:p.id,p_ng_sids:ngSids,p_photo:url,p_note:bx.querySelector("#dn").value.trim()||null},ngSids.length?("Đã ghi NG "+ngSids.length+" hạng mục — các hạng mục đó quay lại chờ khắc phục"):"Đã ghi nhận tất cả OK");PH={};},"Lưu kết quả");
+  const setState=(d,st)=>{d.dataset.state=st;d.querySelector(".segok").classList.toggle("on",st==="ok");d.querySelector(".segng").classList.toggle("on",st==="ng");};
+  box.querySelectorAll(".dchk").forEach(d=>{d.querySelector(".segok").onclick=()=>setState(d,"ok");d.querySelector(".segng").onclick=()=>setState(d,"ng");});
+  box.querySelector("#allok").onclick=()=>box.querySelectorAll(".dchk").forEach(d=>setState(d,"ok"));
 }
+function pinEditDialog(p){
+  const bucket=p.kind==="F"?"F":p.g;const items=bucketItems(bucket);const have=new Set(p.items.map(x=>x.sid));
+  const h='<label class="f">Line / Khu vực'+zoneSelect("ez")+'</label><input class="inp" id="ezo" placeholder="Tên khu vực khác" style="margin-top:6px;display:none">'
+   +'<label class="f" style="margin-top:8px">Giao bộ phận'+partSel("eo",p.owner_part)+'</label>'
+   +'<div class="f" style="margin-top:10px">Hạng mục trong điểm (bỏ tích = gỡ, tích thêm = bổ sung)</div>'+chkList(items,have);
+  const box=sub("Sửa điểm — "+esc(p.zone),h,async bx=>{
+    let z=bx.querySelector("#ez").value;if(z==="__other"||!z)z=bx.querySelector("#ezo").value.trim();if(!z)throw new Error("Chọn khu vực");
+    const sel=new Set([...bx.querySelectorAll(".ckl input:checked")].map(i=>i.value));
+    if(!sel.size)throw new Error("Giữ ít nhất 1 hạng mục");
+    const add=[...sel].filter(s=>!have.has(s)),rem=[...have].filter(s=>!sel.has(s));
+    await direct("vt_pin_edit",{p_pin:p.id,p_zone:z,p_owner:bx.querySelector("#eo").value,p_add:add,p_remove:rem},"Đã lưu");
+  },"Lưu");
+  bindChk(box);
+  const e=box.querySelector("#ez");if(e){e.value=resolveZone(p.zone)?p.zone:"__other";const o=box.querySelector("#ezo");if(!resolveZone(p.zone)){o.style.display="";o.value=p.zone;}e.onchange=()=>{o.style.display=(e.value==="__other")?"":"none";};}
+}
+
 /* ---------- bản đồ (tự lấp cờ theo khu vực) ---------- */
-function rowOk(l){const s=BY[l.sid];if(!s)return false;if(MF.g==="F"){if(s.kind!=="F")return false;}else if(MF.g&&(s.kind!=="M"||s.g!==MF.g))return false;if(MF.part&&l.owner_part!==MF.part)return false;if(MF.st&&l.status!==MF.st)return false;return true;}
+function pinFilter(p){if(MF.g==="F"){if(p.kind!=="F")return false;}else if(MF.g&&(p.kind!=="M"||p.g!==MF.g))return false;if(MF.part&&p.owner_part!==MF.part)return false;if(MF.st&&p.status!==MF.st)return false;return true;}
 const MCOL={open:"var(--fail)",reported:"#C77A00",verified:"var(--pass)"};
-function markerPts(points){
-  const byZone={};points.forEach(l=>{const z=resolveZone(l.zone);if(!z)return;(byZone[l.zone]||(byZone[l.zone]={z,arr:[]})).arr.push(l);});
+function markerPins(pins){
+  const byZone={};pins.forEach(p=>{const z=resolveZone(p.zone);if(!z)return;(byZone[p.zone]||(byZone[p.zone]={z,arr:[]})).arr.push(p);});
   const out=[];
   Object.keys(byZone).forEach(k=>{const z=byZone[k].z,arr=byZone[k].arr,n=arr.length;
     let cols=Math.max(1,Math.round(Math.sqrt(n*(z.w/Math.max(z.h,0.1)))));cols=Math.max(1,Math.min(6,cols));
     const rows=Math.ceil(n/cols),px=z.w*0.1,py=z.h*0.06,iw=(z.w-2*px)/cols,ih=(z.h-2*py)/rows;
-    arr.forEach((l,i)=>{const c=i%cols,r=Math.floor(i/cols);out.push({l,x:z.x+px+iw*(c+0.5),y:z.y+py+ih*(r+0.5)});});});
+    arr.forEach((p,i)=>{const c=i%cols,r=Math.floor(i/cols);out.push({p,x:z.x+px+iw*(c+0.5),y:z.y+py+ih*(r+0.5)});});});
   return out;
 }
 function mapFilters(){
@@ -554,43 +569,38 @@ function mapFilters(){
   return h;
 }
 function renderMap(){
-  const pts=S.locs.filter(rowOk),M=markerPts(pts),noMap=pts.length-M.length;
-  const cnt={open:0,reported:0,verified:0};pts.forEach(l=>cnt[l.status]++);
+  const pins=allPins().filter(pinFilter),M=markerPins(pins),noMap=pins.length-M.length;
+  const cnt={open:0,reported:0,verified:0};pins.forEach(p=>cnt[p.status]++);
   let h=mapFilters();
   h+='<div id="mapScroll"><div id="mapBox" style="width:'+(MAPZ*100)+'%"><img id="mapImg" src="'+LAYOUT_SRC+'" alt="layout" onerror="if(!this.dataset.f){this.dataset.f=1;this.src=LAYOUT_FB}">'
-   +M.map(o=>'<div class="pin" data-pt="'+o.l.id+'" style="left:'+(Math.round(o.x*100)/100)+"%;top:"+(Math.round(yPct(o.y)*100)/100)+'%"><div class="dot" style="background:'+MCOL[o.l.status]+'"></div></div>').join("")+'</div></div>';
-  h+='<div class="meta" style="margin:8px 0"><span class="lg"><i style="background:var(--fail)"></i>Chờ khắc phục '+cnt.open+'</span><span class="lg"><i style="background:#C77A00"></i>Chờ duyệt '+cnt.reported+'</span><span class="lg"><i style="background:var(--pass)"></i>Đang duy trì '+cnt.verified+'</span><span>'+pts.length+' điểm</span>'+(noMap>0?'<span>'+noMap+' điểm ngoài sơ đồ</span>':"")+'</div>';
-  if(!pts.length)h+='<div class="note">Chưa có điểm kiểm soát nào'+(MF.g||MF.part||MF.st?" với bộ lọc này":"")+'.</div>';
+   +M.map(o=>'<div class="pin" data-pid="'+o.p.id+'" style="left:'+(Math.round(o.x*100)/100)+"%;top:"+(Math.round(yPct(o.y)*100)/100)+'%"><div class="dot" style="background:'+MCOL[o.p.status]+'"></div>'+(o.p.items.length>1?'<span class="cnt">'+o.p.items.length+"</span>":"")+"</div>").join("")+"</div></div>";
+  h+='<div class="meta" style="margin:8px 0"><span class="lg"><i style="background:var(--fail)"></i>Chờ khắc phục '+cnt.open+'</span><span class="lg"><i style="background:#C77A00"></i>Chờ duyệt '+cnt.reported+'</span><span class="lg"><i style="background:var(--pass)"></i>Đang duy trì '+cnt.verified+'</span><span>'+pins.length+' điểm</span>'+(noMap>0?'<span>'+noMap+' điểm ngoài sơ đồ</span>':"")+'</div>';
+  if(!pins.length)h+='<div class="note">Chưa có điểm nào'+(MF.g||MF.part||MF.st?" với bộ lọc này":"")+'.</div>';
   return h;
 }
-function openPoint(id,keep){
-  const l=S.locs.find(x=>x.id===id);if(!l){closeModal();return;}
-  CURPIN=id;const sh=$("modal").querySelector(".sheet"),sc=sh?sh.scrollTop:0;
-  openModal('<button class="x">Đóng</button>'+locCard(l,true));bindActs($("modal"));
-  if(keep){const n=$("modal").querySelector(".sheet");if(n)n.scrollTop=sc;}
-}
 /* ---------- theo bộ phận ---------- */
-function deptSection(part,L){
-  if(!L.length)return'';
-  const ord={open:0,reported:1,verified:2};L=L.slice().sort((a,b)=>ord[a.status]-ord[b.status]);
-  const o=L.filter(l=>l.status==="open").length,r=L.filter(l=>l.status==="reported").length,v=L.filter(l=>l.status==="verified").length;
-  return'<h3 class="sec">'+esc(part)+' — '+L.length+' điểm · <span style="color:var(--fail)">'+o+' chờ khắc phục</span> · <span style="color:#C77A00">'+r+' chờ duyệt</span> · <span style="color:var(--pass)">'+v+' duy trì</span></h3>'+L.map(l=>locCard(l,true)).join("");
+function deptSection(part,pins){
+  if(!pins.length)return'';
+  const ord={open:0,reported:1,verified:2};pins=pins.slice().sort((a,b)=>ord[a.status]-ord[b.status]);
+  const o=pins.filter(p=>p.status==="open").length,r=pins.filter(p=>p.status==="reported").length,v=pins.filter(p=>p.status==="verified").length;
+  return'<h3 class="sec">'+esc(part)+' — '+pins.length+' điểm · <span style="color:var(--fail)">'+o+' chờ KP</span> · <span style="color:#C77A00">'+r+' chờ duyệt</span> · <span style="color:var(--pass)">'+v+' duy trì</span></h3>'+pins.map(pinCard).join("");
 }
 function renderDept(){
-  let h=roundBanner();
+  let h=roundBanner();const P=allPins();
   if(isEHS()){
-    const rep=S.locs.filter(l=>l.status==="reported");
-    if(rep.length)h+='<div class="banner"><b>Chờ bạn duyệt: '+rep.length+' điểm.</b></div>'+rep.map(l=>locCard(l,true)).join("");
-    PARTS.forEach(p=>{h+=deptSection(p,S.locs.filter(l=>l.owner_part===p));});
-    const none=S.locs.filter(l=>!l.owner_part);if(none.length)h+=deptSection("(chưa gán bộ phận)",none);
-    if(!S.locs.length)h+='<div class="note">Chưa có điểm kiểm soát nào. Vào tab "Lập danh mục" để thêm.</div>';
+    const rep=P.filter(p=>p.status==="reported");
+    if(rep.length)h+='<div class="banner"><b>Chờ bạn duyệt: '+rep.length+' điểm.</b></div>'+rep.map(pinCard).join("");
+    PARTS.forEach(pt=>{h+=deptSection(pt,P.filter(p=>p.owner_part===pt));});
+    const none=P.filter(p=>!p.owner_part);if(none.length)h+=deptSection("(chưa gán bộ phận)",none);
+    if(!P.length)h+='<div class="note">Chưa có điểm kiểm soát nào. Vào "Lập danh mục" để thêm.</div>';
   }else{
-    const mine=S.me?S.me.part:"";const L=S.locs.filter(l=>l.owner_part===mine);
-    h+='<div class="note" style="margin-bottom:8px">Bộ phận '+esc(mine||"—")+' · '+L.length+' điểm được giao. Khắc phục kèm ảnh; điểm đang duy trì thì kiểm tra OK/NG mỗi ngày.</div>';
+    const mine=S.me?S.me.part:"";const L=P.filter(p=>p.owner_part===mine);
+    h+='<div class="note" style="margin-bottom:8px">Bộ phận '+esc(mine||"—")+' · '+L.length+' điểm được giao.</div>';
     h+=L.length?deptSection(mine,L):'<div class="note">Chưa có điểm nào được giao cho bộ phận bạn.</div>';
   }
   return h;
 }
+
 $("lgBtn").onclick=doLogin;
 $("lgPin").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
 boot();
